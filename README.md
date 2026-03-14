@@ -13,13 +13,6 @@ Aplicación web para compartir recetas de cocina, desarrollada con Spring Boot +
 - CSS3 (diseño responsivo)
 
 ## Cómo ejecutar
-
-### Opción 1 - Doble clic
-Ejecutar `iniciar.bat`
-
-### Opción 2 - Terminal
-```bash
-cd C:\recetascalidad
 mvnw.cmd spring-boot:run
 ```
 
