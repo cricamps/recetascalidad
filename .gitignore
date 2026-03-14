@@ -1,0 +1,41 @@
+## Maven
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+.mvn/wrapper/maven-wrapper.jar
+
+## IDE - IntelliJ
+.idea/
+*.iws
+*.iml
+*.ipr
+
+## IDE - VSCode
+.vscode/
+.classpath
+.project
+.settings/
+.factorypath
+
+## IDE - Eclipse
+.apt_generated
+.eclipse
+
+## OS
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+## Logs
+*.log
+logs/
+
+## Spring Boot
+spring-shell.log

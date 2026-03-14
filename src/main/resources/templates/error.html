@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Error - RecetasChef</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+<nav class="navbar">
+    <div class="nav-container">
+        <a th:href="@{/home}" class="nav-logo">🍳 RecetasChef</a>
+    </div>
+</nav>
+<section class="no-resultados" style="margin: 80px auto; max-width: 500px; text-align:center;">
+    <div class="no-resultados-icon">😕</div>
+    <h2 style="margin-bottom:12px;">Página no encontrada</h2>
+    <p>La página que buscas no existe o no tienes acceso.</p>
+    <br>
+    <a th:href="@{/home}" class="btn-primary">Volver al inicio</a>
+</section>
+</body>
+</html>
