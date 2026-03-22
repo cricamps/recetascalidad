@@ -14,14 +14,17 @@
 <nav class="navbar">
     <div class="nav-container">
         <a th:href="@{/home}" class="nav-logo">🍳 RecetasChef</a>
-        <ul class="nav-links">
-            <li><a th:href="@{/home}" class="nav-link active">Inicio</a></li>
+        <button class="nav-toggle" id="navToggle" aria-label="Abrir menú">
+            <span></span><span></span><span></span>
+        </button>
+        <ul class="nav-links" id="navLinks">
+            <li><a th:href="@{/home}"   class="nav-link active">Inicio</a></li>
             <li><a th:href="@{/buscar}" class="nav-link">Buscar Recetas</a></li>
             <li sec:authorize="isAuthenticated()">
                 <span class="nav-user">👤 <span sec:authentication="name"></span></span>
             </li>
             <li sec:authorize="isAuthenticated()">
-                <form th:action="@{/logout}" method="post" style="display:inline;">
+                <form th:action="@{/logout}" method="post" style="display:inline;width:100%">
                     <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
                     <button type="submit" class="btn-nav btn-logout">Cerrar Sesión</button>
                 </form>
@@ -33,92 +36,127 @@
     </div>
 </nav>
 
-<!-- HERO BANNER -->
+<!-- HERO -->
 <section class="hero">
     <div class="hero-content">
-        <h1 class="hero-title">Cocina Chilena</h1>
-        <p class="hero-subtitle">Recetas caseras escritas con cariño: arroz graneado, empanadas, plateada, cazuela y mucho más. Todo lo que necesitas saber para cocinar rico.</p>
+        <h1 class="hero-title">Cocina Chilena Casera</h1>
+        <p class="hero-subtitle">Recetas caseras escritas con cariño: arroz graneado, empanadas, plateada, cazuela y mucho más.</p>
         <div class="hero-buttons">
-            <a th:href="@{/buscar}" class="btn-primary">Explorar Recetas</a>
+            <a th:href="@{/buscar}" class="btn-primary">🔍 Explorar Recetas</a>
             <a sec:authorize="!isAuthenticated()" th:href="@{/login}" class="btn-secondary">Iniciar Sesión</a>
-            <a sec:authorize="isAuthenticated()" th:href="@{/buscar}" class="btn-secondary">Ver todas las recetas</a>
+            <a sec:authorize="isAuthenticated()"  th:href="@{/buscar}" class="btn-secondary">Ver todas →</a>
         </div>
     </div>
-    <div class="hero-image">
-        <div class="hero-emoji">🫕</div>
-    </div>
+    <div class="hero-image"><span class="hero-emoji">🫕</span></div>
 </section>
+
+<!-- BANNERS COMERCIALES -->
+<div class="banners-section">
+    <p class="banners-label">Publicidad · Espacios comerciales</p>
+    <div class="banners-track">
+        <div class="banner-card verde">
+            <span class="banner-icon">🛒</span>
+            <div class="banner-text"><strong>Supermercado Fresco</strong><span>¡Ingredientes frescos al mejor precio!</span></div>
+        </div>
+        <div class="banner-card rojo">
+            <span class="banner-icon">🔪</span>
+            <div class="banner-text"><strong>Cuchillos Pro Chef</strong><span>Equipamiento profesional para tu cocina</span></div>
+        </div>
+        <div class="banner-card azul">
+            <span class="banner-icon">🧂</span>
+            <div class="banner-text"><strong>Especias del Mundo</strong><span>Más de 200 variedades importadas</span></div>
+        </div>
+        <div class="banner-card naranja">
+            <span class="banner-icon">🍷</span>
+            <div class="banner-text"><strong>Viña Los Andes</strong><span>El mejor vino para tus guisos chilenos</span></div>
+        </div>
+        <div class="banner-card morado">
+            <span class="banner-icon">📦</span>
+            <div class="banner-text"><strong>ChefBox Semanal</strong><span>Ingredientes exactos, entregados en casa</span></div>
+        </div>
+        <div class="banner-card verde">
+            <span class="banner-icon">🫙</span>
+            <div class="banner-text"><strong>Conservas del Sur</strong><span>Productos artesanales de la Patagonia</span></div>
+        </div>
+    </div>
+</div>
 
 <!-- RECETAS RECIENTES -->
 <section class="section-recetas">
-    <div class="section-container">
-        <div class="section-header">
-            <h2 class="section-title">🆕 Recetas Recientes</h2>
-            <a th:href="@{/buscar}" class="ver-todas">Ver todas →</a>
-        </div>
-        <div class="recetas-grid">
-            <div th:each="receta : ${recetasRecientes}" class="receta-card">
-                <div class="card-imagen">
-                    <div class="card-emoji"
-                         th:text="${receta.tipoCocina == 'Postre' ? '🍮' :
-                                    receta.tipoCocina == 'Marina' ? '🐟' :
-                                    receta.tipoCocina == 'Vegetariana' ? '🥗' : '🍲'}">🍽️</div>
-                    <span class="card-badge" th:text="${receta.dificultad}">Media</span>
+    <div class="section-header">
+        <h2 class="section-title">🆕 Recetas Recientes</h2>
+        <a th:href="@{/buscar}" class="ver-todas">Ver todas →</a>
+    </div>
+    <div class="recetas-grid">
+        <div th:each="receta : ${recetasRecientes}" class="receta-card">
+            <div class="card-imagen">
+                <div class="card-emoji"
+                     th:text="${receta.tipoCocina == 'Postre' ? '🍮' :
+                                receta.tipoCocina == 'Marina' ? '🐟' :
+                                receta.tipoCocina == 'Vegetariana' ? '🥗' : '🍲'}">🍽️</div>
+                <span class="card-badge" th:text="${receta.dificultad}">Media</span>
+            </div>
+            <div class="card-body">
+                <h3 class="card-titulo" th:text="${receta.nombre}">Nombre</h3>
+                <p class="card-desc"    th:text="${receta.descripcionCorta}">Descripción</p>
+                <div class="card-meta">
+                    <span class="meta-item">⏱️ <span th:text="${receta.tiempoCoccion + ' min'}">30 min</span></span>
+                    <span class="meta-item">🍜 <span th:text="${receta.tipoCocina}">Tipo</span></span>
                 </div>
-                <div class="card-body">
-                    <h3 class="card-titulo" th:text="${receta.nombre}">Nombre</h3>
-                    <p class="card-desc" th:text="${receta.descripcionCorta}">Descripción</p>
-                    <div class="card-meta">
-                        <span class="meta-item">⏱️ <span th:text="${receta.tiempoCoccion + ' min'}">30 min</span></span>
-                        <span class="meta-item">🍜 <span th:text="${receta.tipoCocina}">Tipo</span></span>
-                    </div>
-                    <div class="card-footer">
-                        <span class="card-tipo" th:text="${receta.tipoCocina}">Tipo</span>
-                        <a th:href="@{/receta/{id}(id=${receta.id})}"
-                           sec:authorize="isAuthenticated()" class="btn-ver">Ver Receta</a>
-                        <a th:href="@{/login}"
-                           sec:authorize="!isAuthenticated()" class="btn-ver btn-ver-login">🔒 Ver Receta</a>
-                    </div>
+                <div class="card-footer">
+                    <span class="card-tipo" th:text="${receta.tipoCocina}">Tipo</span>
+                    <span sec:authorize="isAuthenticated()"  class="btn-ver">Ver Receta</span>
+                    <span sec:authorize="!isAuthenticated()" class="btn-ver btn-ver-login">🔒 Ver Receta</span>
                 </div>
             </div>
+            <!-- Link al FINAL para que quede encima en el stack z -->
+            <a sec:authorize="isAuthenticated()"
+               th:href="@{/receta/{id}(id=${receta.id})}"
+               class="card-link-full" aria-label="Ver receta"></a>
+            <a sec:authorize="!isAuthenticated()"
+               th:href="@{/login}"
+               class="card-link-full" aria-label="Iniciar sesión para ver receta"></a>
         </div>
     </div>
 </section>
 
 <!-- RECETAS POPULARES -->
 <section class="section-populares">
-    <div class="section-container">
-        <div class="section-header">
-            <h2 class="section-title">⭐ Recetas Populares</h2>
-            <a th:href="@{/buscar}" class="ver-todas">Ver todas →</a>
-        </div>
-        <div class="populares-grid">
-            <div th:each="receta : ${recetasPopulares}" class="popular-card">
-                <div class="popular-emoji"
-                     th:text="${receta.tipoCocina == 'Postre' ? '🍮' :
-                                receta.tipoCocina == 'Marina' ? '🐟' :
-                                receta.tipoCocina == 'Vegetariana' ? '🥗' : '🍲'}">🍽️</div>
-                <div class="popular-info">
-                    <h4 th:text="${receta.nombre}">Nombre</h4>
-                    <p th:text="${receta.tipoCocina + ' · ' + receta.dificultad}">Tipo · Dificultad</p>
-                </div>
-                <div class="popular-actions">
-                    <span class="popular-tiempo" th:text="${receta.tiempoCoccion + ' min'}">30 min</span>
-                    <a th:href="@{/receta/{id}(id=${receta.id})}"
-                       sec:authorize="isAuthenticated()" class="btn-mini">Ver</a>
-                    <a th:href="@{/login}"
-                       sec:authorize="!isAuthenticated()" class="btn-mini btn-mini-lock">🔒</a>
-                </div>
+    <div class="section-header">
+        <h2 class="section-title">⭐ Recetas Populares</h2>
+        <a th:href="@{/buscar}" class="ver-todas">Ver todas →</a>
+    </div>
+    <div class="populares-grid">
+        <div th:each="receta : ${recetasPopulares}" class="popular-card">
+            <div class="popular-emoji"
+                 th:text="${receta.tipoCocina == 'Postre' ? '🍮' :
+                            receta.tipoCocina == 'Marina' ? '🐟' :
+                            receta.tipoCocina == 'Vegetariana' ? '🥗' : '🍲'}">🍽️</div>
+            <div class="popular-info">
+                <h4 th:text="${receta.nombre}">Nombre</h4>
+                <p  th:text="${receta.tipoCocina + ' · ' + receta.dificultad}">Tipo</p>
             </div>
+            <div class="popular-actions">
+                <span class="popular-tiempo" th:text="${receta.tiempoCoccion + ' min'}">30 min</span>
+                <span sec:authorize="isAuthenticated()"  class="btn-mini">Ver</span>
+                <span sec:authorize="!isAuthenticated()" class="btn-mini btn-mini-lock">🔒</span>
+            </div>
+            <!-- Link al FINAL para que quede encima en el stack z -->
+            <a sec:authorize="isAuthenticated()"
+               th:href="@{/receta/{id}(id=${receta.id})}"
+               class="popular-link-full" aria-label="Ver receta"></a>
+            <a sec:authorize="!isAuthenticated()"
+               th:href="@{/login}"
+               class="popular-link-full" aria-label="Iniciar sesión para ver receta"></a>
         </div>
     </div>
 </section>
 
-<!-- CALL TO ACTION -->
+<!-- CTA -->
 <section sec:authorize="!isAuthenticated()" class="cta-section">
     <div class="cta-container">
         <h2>¿Listo para ver las recetas completas?</h2>
-        <p>Inicia sesión y descubre los ingredientes exactos, instrucciones paso a paso y todos los secretos de la cocina chilena.</p>
+        <p>Inicia sesión y descubre ingredientes exactos, instrucciones paso a paso y todos los secretos de la cocina chilena.</p>
         <a th:href="@{/login}" class="btn-cta">Iniciar Sesión Ahora</a>
     </div>
 </section>
@@ -154,9 +192,23 @@
         </div>
     </div>
     <div class="footer-bottom">
-        <p>&copy; 2024 RecetasChef · Desarrollado con Spring Security + Thymeleaf</p>
+        <p>&copy; 2024 RecetasChef · Spring Boot + Spring Security + JWT + JPA</p>
     </div>
 </footer>
 
+<script>
+    const toggle = document.getElementById('navToggle');
+    const links  = document.getElementById('navLinks');
+    toggle.addEventListener('click', () => {
+        toggle.classList.toggle('open');
+        links.classList.toggle('open');
+    });
+    links.querySelectorAll('a, button').forEach(el => {
+        el.addEventListener('click', () => {
+            toggle.classList.remove('open');
+            links.classList.remove('open');
+        });
+    });
+</script>
 </body>
 </html>

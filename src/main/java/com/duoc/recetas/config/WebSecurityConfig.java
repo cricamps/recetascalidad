@@ -1,30 +1,62 @@
 package com.duoc.recetas.config;
 
+import com.duoc.recetas.security.JwtAuthFilter;
+import com.duoc.recetas.service.UsuarioDetailsService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 @EnableWebSecurity
 public class WebSecurityConfig {
 
+    @Autowired
+    private UsuarioDetailsService usuarioDetailsService;
+
+    @Autowired
+    private JwtAuthFilter jwtAuthFilter;
+
+    // ─────────────────────────────────────────────────────────────────
+    // 1) Cadena API REST  /api/**  →  stateless + JWT
+    // ─────────────────────────────────────────────────────────────────
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    @Order(1)
+    public SecurityFilterChain apiFilterChain(HttpSecurity http) throws Exception {
+        http
+            .securityMatcher("/api/**")
+            .csrf(csrf -> csrf.disable())
+            .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .authorizeHttpRequests(auth -> auth
+                .requestMatchers("/api/auth/login").permitAll()
+                .anyRequest().authenticated()
+            )
+            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+
+        return http.build();
+    }
+
+    // ─────────────────────────────────────────────────────────────────
+    // 2) Cadena Web (Thymeleaf)  →  form login con sesión
+    // ─────────────────────────────────────────────────────────────────
+    @Bean
+    @Order(2)
+    public SecurityFilterChain webFilterChain(HttpSecurity http) throws Exception {
         http
             .authorizeHttpRequests(requests -> requests
-                // Páginas públicas
                 .requestMatchers("/", "/home", "/buscar").permitAll()
                 .requestMatchers("/css/**", "/img/**", "/js/**").permitAll()
                 .requestMatchers("/login", "/login?error", "/login?logout").permitAll()
-                // Todo lo demás requiere autenticación
+                .requestMatchers("/h2-console/**").permitAll()
                 .anyRequest().authenticated()
             )
             .formLogin(form -> form
@@ -38,33 +70,24 @@ public class WebSecurityConfig {
                 .invalidateHttpSession(true)
                 .deleteCookies("JSESSIONID")
                 .permitAll()
-            );
+            )
+            .headers(headers -> headers.frameOptions(fo -> fo.sameOrigin()));
 
         return http.build();
     }
 
+    // ─────────────────────────────────────────────────────────────────
+    // AuthenticationManager construido con el builder — sin usar
+    // DaoAuthenticationProvider directamente (evita métodos deprecados)
+    // ─────────────────────────────────────────────────────────────────
     @Bean
-    public UserDetailsService userDetailsService() {
-        // 3 usuarios en memoria según lo solicitado
-        UserDetails user1 = User.builder()
-                .username("usuario")
-                .password(passwordEncoder().encode("usuario123"))
-                .roles("USER")
-                .build();
-
-        UserDetails user2 = User.builder()
-                .username("chef")
-                .password(passwordEncoder().encode("chef123"))
-                .roles("USER", "CHEF")
-                .build();
-
-        UserDetails admin = User.builder()
-                .username("admin")
-                .password(passwordEncoder().encode("admin123"))
-                .roles("USER", "ADMIN")
-                .build();
-
-        return new InMemoryUserDetailsManager(user1, user2, admin);
+    public AuthenticationManager authenticationManager(HttpSecurity http) throws Exception {
+        AuthenticationManagerBuilder builder =
+                http.getSharedObject(AuthenticationManagerBuilder.class);
+        builder
+            .userDetailsService(usuarioDetailsService)
+            .passwordEncoder(passwordEncoder());
+        return builder.build();
     }
 
     @Bean

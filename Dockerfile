@@ -11,4 +11,6 @@ FROM eclipse-temurin:17-jre-alpine
 WORKDIR /app
 COPY --from=build /app/target/*.jar app.jar
 EXPOSE 8080
+# El perfil se controla via variable de entorno SPRING_PROFILES_ACTIVE en Railway
+# Si no se define, usa 'local' (H2) por defecto
 ENTRYPOINT ["java", "-jar", "app.jar"]
