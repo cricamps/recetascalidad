@@ -71,7 +71,25 @@ public class WebSecurityConfig {
                 .deleteCookies("JSESSIONID")
                 .permitAll()
             )
-            .headers(headers -> headers.frameOptions(fo -> fo.sameOrigin()));
+            .headers(headers -> headers
+                .frameOptions(fo -> fo.sameOrigin())
+                .xssProtection(xss -> xss.disable())
+                .contentTypeOptions(cto -> {})
+                .httpStrictTransportSecurity(hsts -> hsts
+                    .includeSubDomains(true)
+                    .maxAgeInSeconds(31536000)
+                )
+                .contentSecurityPolicy(csp -> csp
+                    .policyDirectives(
+                        "default-src 'self'; " +
+                        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
+                        "font-src 'self' https://fonts.gstatic.com; " +
+                        "img-src 'self' data:; " +
+                        "script-src 'self' 'unsafe-inline'; " +
+                        "frame-ancestors 'self'"
+                    )
+                )
+            );
 
         return http.build();
     }
