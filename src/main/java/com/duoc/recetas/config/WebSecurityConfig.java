@@ -84,8 +84,10 @@ public class WebSecurityConfig {
                         "default-src 'self'; " +
                         "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
                         "font-src 'self' https://fonts.gstatic.com; " +
-                        "img-src 'self' data:; " +
-                        "script-src 'self' 'unsafe-inline'; " +
+                        "img-src 'self' data: https:; " +
+                        "script-src 'self'; " +
+                        "object-src 'none'; " +
+                        "base-uri 'self'; " +
                         "frame-ancestors 'self'"
                     )
                 )
