@@ -59,6 +59,9 @@ public class WebSecurityConfig {
                 .requestMatchers("/h2-console/**").permitAll()
                 .anyRequest().authenticated()
             )
+            .csrf(csrf -> csrf
+                .ignoringRequestMatchers("/h2-console/**")
+            )
             .formLogin(form -> form
                 .loginPage("/login")
                 .defaultSuccessUrl("/home", true)
@@ -78,18 +81,6 @@ public class WebSecurityConfig {
                 .httpStrictTransportSecurity(hsts -> hsts
                     .includeSubDomains(true)
                     .maxAgeInSeconds(31536000)
-                )
-                .contentSecurityPolicy(csp -> csp
-                    .policyDirectives(
-                        "default-src 'self'; " +
-                        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
-                        "font-src 'self' https://fonts.gstatic.com; " +
-                        "img-src 'self' data: https:; " +
-                        "script-src 'self'; " +
-                        "object-src 'none'; " +
-                        "base-uri 'self'; " +
-                        "frame-ancestors 'self'"
-                    )
                 )
             );
 
