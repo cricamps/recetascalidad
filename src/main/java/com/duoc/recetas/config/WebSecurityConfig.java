@@ -15,6 +15,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter;
 
 @Configuration
 @EnableWebSecurity
@@ -53,10 +54,13 @@ public class WebSecurityConfig {
     public SecurityFilterChain webFilterChain(HttpSecurity http) throws Exception {
         http
             .authorizeHttpRequests(requests -> requests
+                // Rutas públicas
                 .requestMatchers("/", "/home", "/buscar").permitAll()
                 .requestMatchers("/css/**", "/img/**", "/js/**").permitAll()
                 .requestMatchers("/login", "/login?error", "/login?logout").permitAll()
+                .requestMatchers("/registro", "/registro?registrado").permitAll()
                 .requestMatchers("/h2-console/**").permitAll()
+                // Todo lo demás requiere autenticación
                 .anyRequest().authenticated()
             )
             .csrf(csrf -> csrf
@@ -82,14 +86,26 @@ public class WebSecurityConfig {
                     .includeSubDomains(true)
                     .maxAgeInSeconds(31536000)
                 )
+                .referrerPolicy(ref -> ref
+                    .policy(ReferrerPolicyHeaderWriter.ReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN)
+                )
+                .contentSecurityPolicy(csp -> csp
+                    .policyDirectives(
+                        "default-src 'self'; " +
+                        "script-src 'self' 'unsafe-inline'; " +
+                        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
+                        "font-src 'self' https://fonts.gstatic.com; " +
+                        "img-src 'self' data:; " +
+                        "frame-ancestors 'none';"
+                    )
+                )
             );
 
         return http.build();
     }
 
     // ─────────────────────────────────────────────────────────────────
-    // AuthenticationManager construido con el builder — sin usar
-    // DaoAuthenticationProvider directamente (evita métodos deprecados)
+    // AuthenticationManager
     // ─────────────────────────────────────────────────────────────────
     @Bean
     public AuthenticationManager authenticationManager(HttpSecurity http) throws Exception {

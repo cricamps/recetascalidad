@@ -19,12 +19,26 @@ public class Usuario {
     @Column(nullable = false, length = 100)
     private String roles; // "ROLE_USER", "ROLE_USER,ROLE_CHEF", etc.
 
+    @Column(name = "nombre_completo", length = 100)
+    private String nombreCompleto;
+
+    @Column(length = 150)
+    private String correo;
+
     public Usuario() {}
 
     public Usuario(String username, String password, String roles) {
         this.username = username;
         this.password = password;
         this.roles = roles;
+    }
+
+    public Usuario(String username, String password, String roles, String nombreCompleto, String correo) {
+        this.username = username;
+        this.password = password;
+        this.roles = roles;
+        this.nombreCompleto = nombreCompleto;
+        this.correo = correo;
     }
 
     public Long getId() { return id; }
@@ -38,4 +52,10 @@ public class Usuario {
 
     public String getRoles() { return roles; }
     public void setRoles(String roles) { this.roles = roles; }
+
+    public String getNombreCompleto() { return nombreCompleto; }
+    public void setNombreCompleto(String nombreCompleto) { this.nombreCompleto = nombreCompleto; }
+
+    public String getCorreo() { return correo; }
+    public void setCorreo(String correo) { this.correo = correo; }
 }

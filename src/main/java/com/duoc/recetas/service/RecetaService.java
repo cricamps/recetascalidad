@@ -41,4 +41,8 @@ public class RecetaService {
         String i = (ingrediente != null && !ingrediente.isBlank()) ? ingrediente : null;
         return recetaRepository.buscar(n, t, p, d, i);
     }
+
+    public RecetaEntity guardar(RecetaEntity receta) {
+        return recetaRepository.save(receta);
+    }
 }
