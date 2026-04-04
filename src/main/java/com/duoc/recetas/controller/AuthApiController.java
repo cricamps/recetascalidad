@@ -60,16 +60,7 @@ public class AuthApiController {
         return ResponseEntity.ok(new LoginResponse(token, request.getUsername(), roles, expirationMs));
     }
 
-    /** Ejemplo de endpoint privado que requiere JWT */
-    @GetMapping("/recetas")
-    public ResponseEntity<?> recetasPrivadas() {
-        return ResponseEntity.ok(Map.of(
-            "mensaje", "Acceso autorizado con JWT",
-            "info", "Este endpoint solo es accesible con un token válido"
-        ));
-    }
-
-    /** Información del usuario autenticado */
+    /** Informacion del usuario autenticado */
     @GetMapping("/me")
     public ResponseEntity<?> me(org.springframework.security.core.Authentication auth) {
         return ResponseEntity.ok(Map.of(

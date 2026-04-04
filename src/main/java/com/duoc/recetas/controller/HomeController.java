@@ -1,28 +1,26 @@
 package com.duoc.recetas.controller;
 
-import com.duoc.recetas.model.RecetaData;
+import com.duoc.recetas.entity.RecetaEntity;
+import com.duoc.recetas.service.RecetaService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 
+import java.util.List;
+
 @Controller
 public class HomeController {
 
     @Autowired
-    private RecetaData recetaData;
+    private RecetaService recetaService;
 
-    @GetMapping("/")
-    public String root(Model model) {
-        model.addAttribute("recetasRecientes", recetaData.getRecetasRecientes());
-        model.addAttribute("recetasPopulares", recetaData.getRecetasPopulares());
-        return "home";
-    }
-
-    @GetMapping("/home")
+    @GetMapping({"/", "/home"})
     public String home(Model model) {
-        model.addAttribute("recetasRecientes", recetaData.getRecetasRecientes());
-        model.addAttribute("recetasPopulares", recetaData.getRecetasPopulares());
+        List<RecetaEntity> recientes = recetaService.getRecientes();
+        List<RecetaEntity> populares = recetaService.getPopulares();
+        model.addAttribute("recetasRecientes", recientes);
+        model.addAttribute("recetasPopulares", populares);
         return "home";
     }
 

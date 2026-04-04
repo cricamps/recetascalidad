@@ -1,7 +1,7 @@
 package com.duoc.recetas.controller;
 
-import com.duoc.recetas.model.Receta;
-import com.duoc.recetas.model.RecetaData;
+import com.duoc.recetas.entity.RecetaEntity;
+import com.duoc.recetas.service.RecetaService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -9,15 +9,16 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import java.util.Arrays;
 import java.util.List;
 
 @Controller
 public class RecetaController {
 
     @Autowired
-    private RecetaData recetaData;
+    private RecetaService recetaService;
 
-    // PÚBLICA - Búsqueda de recetas
+    // PÚBLICA - Búsqueda de recetas (consume servicio BD)
     @GetMapping("/buscar")
     public String buscar(
             @RequestParam(required = false) String nombre,
@@ -27,17 +28,18 @@ public class RecetaController {
             @RequestParam(required = false) String dificultad,
             Model model) {
 
-        List<Receta> resultados;
+        List<RecetaEntity> resultados;
 
-        // Si no hay filtros, mostrar todas
-        if ((nombre == null || nombre.isBlank()) &&
-            (tipoCocina == null || tipoCocina.isBlank()) &&
-            (ingrediente == null || ingrediente.isBlank()) &&
-            (paisOrigen == null || paisOrigen.isBlank()) &&
-            (dificultad == null || dificultad.isBlank())) {
-            resultados = recetaData.getTodasLasRecetas();
+        boolean sinFiltros = (nombre == null || nombre.isBlank()) &&
+                             (tipoCocina == null || tipoCocina.isBlank()) &&
+                             (ingrediente == null || ingrediente.isBlank()) &&
+                             (paisOrigen == null || paisOrigen.isBlank()) &&
+                             (dificultad == null || dificultad.isBlank());
+
+        if (sinFiltros) {
+            resultados = recetaService.getTodas();
         } else {
-            resultados = recetaData.buscarRecetas(nombre, tipoCocina, ingrediente, paisOrigen, dificultad);
+            resultados = recetaService.buscar(nombre, tipoCocina, paisOrigen, dificultad, ingrediente);
         }
 
         model.addAttribute("resultados", resultados);
@@ -53,12 +55,16 @@ public class RecetaController {
 
     // PRIVADA - Detalle de receta (requiere autenticación)
     @GetMapping("/receta/{id}")
-    public String detalleReceta(@PathVariable int id, Model model) {
-        Receta receta = recetaData.getRecetaPorId(id);
-        if (receta == null) {
-            return "redirect:/buscar";
-        }
-        model.addAttribute("receta", receta);
-        return "detalle";
+    public String detalleReceta(@PathVariable Long id, Model model) {
+        return recetaService.getPorId(id)
+                .map(receta -> {
+                    List<String> ingredientes = Arrays.asList(receta.getIngredientes().split("\\|"));
+                    List<String> instrucciones = Arrays.asList(receta.getInstrucciones().split("\\|"));
+                    model.addAttribute("receta", receta);
+                    model.addAttribute("ingredientesList", ingredientes);
+                    model.addAttribute("instruccionesList", instrucciones);
+                    return "detalle";
+                })
+                .orElse("redirect:/buscar");
     }
 }
