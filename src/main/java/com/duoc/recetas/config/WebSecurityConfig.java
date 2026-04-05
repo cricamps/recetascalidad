@@ -2,7 +2,6 @@ package com.duoc.recetas.config;
 
 import com.duoc.recetas.security.JwtAuthFilter;
 import com.duoc.recetas.service.UsuarioDetailsService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -15,28 +14,37 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.csrf.CsrfTokenRepository;
+import org.springframework.security.web.csrf.HttpSessionCsrfTokenRepository;
 import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter;
 
 @Configuration
 @EnableWebSecurity
 public class WebSecurityConfig {
 
-    @Autowired
-    private UsuarioDetailsService usuarioDetailsService;
+    private final UsuarioDetailsService usuarioDetailsService;
+    private final JwtAuthFilter jwtAuthFilter;
 
-    @Autowired
-    private JwtAuthFilter jwtAuthFilter;
+    public WebSecurityConfig(UsuarioDetailsService usuarioDetailsService,
+                              JwtAuthFilter jwtAuthFilter) {
+        this.usuarioDetailsService = usuarioDetailsService;
+        this.jwtAuthFilter = jwtAuthFilter;
+    }
 
     // ─────────────────────────────────────────────────────────────────
     // 1) Cadena API REST  /api/**  →  stateless + JWT
+    //    CSRF deshabilitado: seguro porque no se usan cookies de sesión.
+    //    La autenticación es por header Authorization: Bearer <token>.
     // ─────────────────────────────────────────────────────────────────
     @Bean
     @Order(1)
+    @SuppressWarnings("java:S4502")
     public SecurityFilterChain apiFilterChain(HttpSecurity http) throws Exception {
         http
             .securityMatcher("/api/**")
             .csrf(csrf -> csrf.disable())
-            .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .sessionManagement(sm ->
+                sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/auth/login").permitAll()
                 .anyRequest().authenticated()
@@ -54,16 +62,15 @@ public class WebSecurityConfig {
     public SecurityFilterChain webFilterChain(HttpSecurity http) throws Exception {
         http
             .authorizeHttpRequests(requests -> requests
-                // Rutas públicas
                 .requestMatchers("/", "/home", "/buscar").permitAll()
                 .requestMatchers("/css/**", "/img/**", "/js/**").permitAll()
                 .requestMatchers("/login", "/login?error", "/login?logout").permitAll()
-                .requestMatchers("/registro", "/registro?registrado").permitAll()
+                .requestMatchers("/registro").permitAll()
                 .requestMatchers("/h2-console/**").permitAll()
-                // Todo lo demás requiere autenticación
                 .anyRequest().authenticated()
             )
             .csrf(csrf -> csrf
+                .csrfTokenRepository(csrfTokenRepository())
                 .ignoringRequestMatchers("/h2-console/**")
             )
             .formLogin(form -> form
@@ -80,7 +87,6 @@ public class WebSecurityConfig {
             )
             .headers(headers -> headers
                 .frameOptions(fo -> fo.sameOrigin())
-                .xssProtection(xss -> xss.disable())
                 .contentTypeOptions(cto -> {})
                 .httpStrictTransportSecurity(hsts -> hsts
                     .includeSubDomains(true)
@@ -104,9 +110,13 @@ public class WebSecurityConfig {
         return http.build();
     }
 
-    // ─────────────────────────────────────────────────────────────────
-    // AuthenticationManager
-    // ─────────────────────────────────────────────────────────────────
+    @Bean
+    public CsrfTokenRepository csrfTokenRepository() {
+        HttpSessionCsrfTokenRepository repository = new HttpSessionCsrfTokenRepository();
+        repository.setHeaderName("X-CSRF-TOKEN");
+        return repository;
+    }
+
     @Bean
     public AuthenticationManager authenticationManager(HttpSecurity http) throws Exception {
         AuthenticationManagerBuilder builder =
@@ -119,6 +129,6 @@ public class WebSecurityConfig {
 
     @Bean
     public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
+        return new BCryptPasswordEncoder(12);
     }
 }

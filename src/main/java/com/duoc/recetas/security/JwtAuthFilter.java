@@ -5,7 +5,8 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -16,18 +17,18 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 
-/**
- * Filtro JWT: intercepta cada request y autentica al usuario si viene
- * con un header  Authorization: Bearer <token>  válido.
- */
 @Component
 public class JwtAuthFilter extends OncePerRequestFilter {
 
-    @Autowired
-    private JwtUtil jwtUtil;
+    private static final Logger log = LoggerFactory.getLogger(JwtAuthFilter.class);
 
-    @Autowired
-    private UsuarioDetailsService usuarioDetailsService;
+    private final JwtUtil jwtUtil;
+    private final UsuarioDetailsService usuarioDetailsService;
+
+    public JwtAuthFilter(JwtUtil jwtUtil, UsuarioDetailsService usuarioDetailsService) {
+        this.jwtUtil = jwtUtil;
+        this.usuarioDetailsService = usuarioDetailsService;
+    }
 
     @Override
     protected void doFilterInternal(
@@ -41,18 +42,21 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             String token = authHeader.substring(7);
             try {
                 String username = jwtUtil.extraerUsername(token);
-                if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-                    UserDetails userDetails = usuarioDetailsService.loadUserByUsername(username);
+                if (username != null
+                        && SecurityContextHolder.getContext().getAuthentication() == null) {
+                    UserDetails userDetails =
+                            usuarioDetailsService.loadUserByUsername(username);
                     if (jwtUtil.validarToken(token, userDetails)) {
                         UsernamePasswordAuthenticationToken authToken =
                                 new UsernamePasswordAuthenticationToken(
                                         userDetails, null, userDetails.getAuthorities());
-                        authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                        authToken.setDetails(
+                                new WebAuthenticationDetailsSource().buildDetails(request));
                         SecurityContextHolder.getContext().setAuthentication(authToken);
                     }
                 }
-            } catch (Exception ignored) {
-                // Token inválido → continúa sin autenticar
+            } catch (Exception ex) {
+                log.debug("JWT inválido o expirado: {}", ex.getMessage());
             }
         }
 

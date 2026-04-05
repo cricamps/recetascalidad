@@ -2,27 +2,20 @@ package com.duoc.recetas.controller;
 
 import com.duoc.recetas.entity.RecetaEntity;
 import com.duoc.recetas.service.RecetaService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-/**
- * API REST de Recetas - requiere JWT (protegida por apiFilterChain)
- *
- * GET /api/recetas              - todas las recetas
- * GET /api/recetas/populares    - recetas populares
- * GET /api/recetas/recientes    - ultimas 6 recetas
- * GET /api/recetas/{id}         - detalle de una receta
- * GET /api/recetas/buscar       - busqueda con filtros
- */
 @RestController
 @RequestMapping("/api/recetas")
 public class RecetaApiController {
 
-    @Autowired
-    private RecetaService recetaService;
+    private final RecetaService recetaService;
+
+    public RecetaApiController(RecetaService recetaService) {
+        this.recetaService = recetaService;
+    }
 
     @GetMapping
     public ResponseEntity<List<RecetaEntity>> getTodas() {
@@ -40,8 +33,9 @@ public class RecetaApiController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<?> getPorId(@PathVariable Long id) {
+    public ResponseEntity<Object> getPorId(@PathVariable Long id) {
         return recetaService.getPorId(id)
+                .map(r -> (Object) r)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
@@ -53,6 +47,7 @@ public class RecetaApiController {
             @RequestParam(required = false) String paisOrigen,
             @RequestParam(required = false) String dificultad,
             @RequestParam(required = false) String ingrediente) {
-        return ResponseEntity.ok(recetaService.buscar(nombre, tipoCocina, paisOrigen, dificultad, ingrediente));
+        return ResponseEntity.ok(
+            recetaService.buscar(nombre, tipoCocina, paisOrigen, dificultad, ingrediente));
     }
 }

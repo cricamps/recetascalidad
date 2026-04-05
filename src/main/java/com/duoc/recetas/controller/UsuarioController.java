@@ -4,7 +4,6 @@ import com.duoc.recetas.dto.RegistroRequest;
 import com.duoc.recetas.entity.RecetaEntity;
 import com.duoc.recetas.service.RecetaService;
 import com.duoc.recetas.service.UsuarioService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -12,25 +11,16 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-/**
- * Controlador web para registro de usuarios y publicación de recetas.
- *
- * Rutas:
- *   GET  /registro          → formulario de registro  (pública)
- *   POST /registro          → procesar registro        (pública)
- *   GET  /nueva-receta      → formulario publicar      (privada)
- *   POST /nueva-receta      → guardar receta           (privada)
- */
 @Controller
 public class UsuarioController {
 
-    @Autowired
-    private UsuarioService usuarioService;
+    private final UsuarioService usuarioService;
+    private final RecetaService recetaService;
 
-    @Autowired
-    private RecetaService recetaService;
-
-    // ── REGISTRO ─────────────────────────────────────────────────────────────
+    public UsuarioController(UsuarioService usuarioService, RecetaService recetaService) {
+        this.usuarioService = usuarioService;
+        this.recetaService = recetaService;
+    }
 
     @GetMapping("/registro")
     public String mostrarRegistro(Model model) {
@@ -43,11 +33,10 @@ public class UsuarioController {
             @ModelAttribute RegistroRequest registroRequest,
             Model model) {
 
-        // Validación mínima
-        if (registroRequest.getUsername() == null || registroRequest.getUsername().isBlank()
-                || registroRequest.getPassword() == null || registroRequest.getPassword().isBlank()
-                || registroRequest.getCorreo() == null || registroRequest.getCorreo().isBlank()
-                || registroRequest.getNombreCompleto() == null || registroRequest.getNombreCompleto().isBlank()) {
+        if (esBlanco(registroRequest.getUsername())
+                || esBlanco(registroRequest.getPassword())
+                || esBlanco(registroRequest.getCorreo())
+                || esBlanco(registroRequest.getNombreCompleto())) {
             model.addAttribute("error", "Todos los campos son obligatorios.");
             return "registro";
         }
@@ -60,8 +49,6 @@ public class UsuarioController {
 
         return "redirect:/login?registrado=true";
     }
-
-    // ── PUBLICAR RECETA ───────────────────────────────────────────────────────
 
     @GetMapping("/nueva-receta")
     public String mostrarFormularioReceta(Model model) {
@@ -80,10 +67,7 @@ public class UsuarioController {
             @RequestParam String dificultad,
             Model model) {
 
-        // Validación mínima del servidor
-        if (nombre == null || nombre.isBlank()
-                || ingredientes == null || ingredientes.isBlank()
-                || instrucciones == null || instrucciones.isBlank()) {
+        if (esBlanco(nombre) || esBlanco(ingredientes) || esBlanco(instrucciones)) {
             model.addAttribute("error", "Nombre, ingredientes e instrucciones son obligatorios.");
             model.addAttribute("receta", new RecetaEntity());
             return "nueva-receta";
@@ -105,5 +89,9 @@ public class UsuarioController {
         recetaService.guardar(nueva);
 
         return "redirect:/buscar?publicada=true";
+    }
+
+    private boolean esBlanco(String valor) {
+        return valor == null || valor.isBlank();
     }
 }
