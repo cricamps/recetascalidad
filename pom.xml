@@ -128,6 +128,27 @@
                 <artifactId>sonar-maven-plugin</artifactId>
                 <version>4.0.0.4121</version>
             </plugin>
+            <!-- OWASP Dependency Check: SCA - analisis de vulnerabilidades en dependencias -->
+            <plugin>
+                <groupId>org.owasp</groupId>
+                <artifactId>dependency-check-maven</artifactId>
+                <version>9.2.0</version>
+                <configuration>
+                    <!-- API Key NVD: obtener gratis en https://nvd.nist.gov/developers/request-an-api-key -->
+                    <!-- Reemplazar TU_API_KEY con la key recibida por email -->
+                    <nvdApiKey>${nvd.api.key}</nvdApiKey>
+                    <!-- Si no hay key, continuar igual (no falla el build) -->
+                    <failBuildOnCVSS>11</failBuildOnCVSS>
+                    <skipProvidedScope>true</skipProvidedScope>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
 

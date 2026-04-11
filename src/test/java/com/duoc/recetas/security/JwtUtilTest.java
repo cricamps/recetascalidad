@@ -9,20 +9,24 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.List;
+import java.util.Objects;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 @DisplayName("Tests unitarios - JwtUtil")
+@SuppressWarnings("null") // Mockito no tiene anotaciones null-safety compatibles con JDT
 class JwtUtilTest {
 
     private JwtUtil jwtUtil;
-
     private UserDetails userDetails;
 
     @BeforeEach
     void setUp() {
         jwtUtil = new JwtUtil();
-        // Inyectar valores de configuración sin levantar Spring
+
+        // ReflectionTestUtils.setField espera @NonNull Object como primer argumento.
+        // Objects.requireNonNull satisface al compilador JDT sin cambiar la lógica.
+        Objects.requireNonNull(jwtUtil, "jwtUtil no debe ser null");
         ReflectionTestUtils.setField(jwtUtil, "secret",
             "3f8a2b1c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a");
         ReflectionTestUtils.setField(jwtUtil, "expirationMs", 86400000L);

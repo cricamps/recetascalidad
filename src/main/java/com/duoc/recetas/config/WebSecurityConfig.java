@@ -67,6 +67,11 @@ public class WebSecurityConfig {
                 .requestMatchers("/login", "/login?error", "/login?logout").permitAll()
                 .requestMatchers("/registro").permitAll()
                 .requestMatchers("/h2-console/**").permitAll()
+                // Rutas privadas: requieren autenticación
+                .requestMatchers("/receta/*/comentar").authenticated()
+                .requestMatchers("/receta/*/subir-medio").authenticated()
+                .requestMatchers("/receta/*/compartir").authenticated()
+                .requestMatchers("/nueva-receta").authenticated()
                 .anyRequest().authenticated()
             )
             .csrf(csrf -> csrf

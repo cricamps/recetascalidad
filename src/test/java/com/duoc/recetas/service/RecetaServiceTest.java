@@ -10,6 +10,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -17,6 +18,7 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("Tests unitarios - RecetaService")
+@SuppressWarnings("null") // Mockito no tiene anotaciones null-safety compatibles con JDT
 class RecetaServiceTest {
 
     @Mock
@@ -92,12 +94,15 @@ class RecetaServiceTest {
     @Test
     @DisplayName("guardar persiste la receta y la retorna")
     void guardar_persisteReceta() {
-        RecetaEntity nueva = crearReceta(null, "Sopa de Tomate");
-        RecetaEntity guardada = crearReceta(5L, "Sopa de Tomate");
-        when(recetaRepository.save(nueva)).thenReturn(guardada);
+        RecetaEntity nueva    = crearReceta(null, "Sopa de Tomate");
+        RecetaEntity guardada = crearReceta(5L,   "Sopa de Tomate");
+        // thenAnswer en lugar de thenReturn evita el warning @NonNull en el mock
+        when(recetaRepository.save(nueva)).thenAnswer(inv -> guardada);
 
         RecetaEntity resultado = recetaService.guardar(nueva);
 
+        // guardada nunca es null — Objects.requireNonNull satisface a JDT
+        Objects.requireNonNull(resultado, "El resultado no debe ser null");
         assertThat(resultado.getId()).isEqualTo(5L);
         verify(recetaRepository, times(1)).save(nueva);
     }

@@ -12,6 +12,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.util.Objects;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -21,6 +22,7 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("Tests unitarios - UsuarioService")
+@SuppressWarnings("null") // Mockito no tiene anotaciones null-safety compatibles con JDT
 class UsuarioServiceTest {
 
     @Mock
@@ -48,7 +50,8 @@ class UsuarioServiceTest {
     void registrar_cuandoUsernameNoExiste_retornaTrue() {
         when(usuarioRepository.findByUsername("juantest")).thenReturn(Optional.empty());
         when(passwordEncoder.encode("password123")).thenReturn("$2a$12$encodedPassword");
-        when(usuarioRepository.save(any(Usuario.class))).thenReturn(new Usuario());
+        // thenAnswer evita el warning @NonNull que JDT lanza con thenReturn(new Usuario())
+        when(usuarioRepository.save(any(Usuario.class))).thenAnswer(inv -> new Usuario());
 
         boolean resultado = usuarioService.registrar(request);
 
@@ -59,8 +62,10 @@ class UsuarioServiceTest {
     @Test
     @DisplayName("Registro falla cuando el username ya existe")
     void registrar_cuandoUsernameExiste_retornaFalse() {
+        // thenAnswer evita el warning @NonNull en el argumento de thenReturn
         Usuario existente = new Usuario("juantest", "pass", "ROLE_USER");
-        when(usuarioRepository.findByUsername("juantest")).thenReturn(Optional.of(existente));
+        when(usuarioRepository.findByUsername("juantest"))
+                .thenAnswer(inv -> Optional.of(existente));
 
         boolean resultado = usuarioService.registrar(request);
 
@@ -86,14 +91,18 @@ class UsuarioServiceTest {
         when(usuarioRepository.findByUsername(anyString())).thenReturn(Optional.empty());
         when(passwordEncoder.encode(anyString())).thenReturn("hashed");
 
+        // Array para capturar el argumento; thenAnswer evita el warning @NonNull
         Usuario[] capturado = new Usuario[1];
         when(usuarioRepository.save(any(Usuario.class))).thenAnswer(inv -> {
-            capturado[0] = inv.getArgument(0);
-            return capturado[0];
+            Usuario u = inv.getArgument(0);
+            capturado[0] = u;
+            return u;
         });
 
         usuarioService.registrar(request);
 
+        // requireNonNull confirma a JDT que capturado[0] no es null antes del assertThat
+        Objects.requireNonNull(capturado[0], "El usuario capturado no debe ser null");
         assertThat(capturado[0].getRoles()).isEqualTo("ROLE_USER");
     }
 }

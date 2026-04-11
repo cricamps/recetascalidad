@@ -118,6 +118,95 @@
             </div>
         </div>
 
+        <!-- COMPARTIR (privado) -->
+        <div sec:authorize="isAuthenticated()" class="detalle-compartir">
+            <h3>📤 Compartir esta receta</h3>
+            <div class="compartir-btns">
+                <a th:href="@{/receta/__${receta.id}__/compartir(destino='web')}" class="btn-share btn-web">🔗 Copiar enlace</a>
+                <a th:href="@{/receta/__${receta.id}__/compartir(destino='whatsapp')}" class="btn-share btn-wa" target="_blank" rel="noopener noreferrer">💬 WhatsApp</a>
+                <a th:href="@{/receta/__${receta.id}__/compartir(destino='twitter')}" class="btn-share btn-tw" target="_blank" rel="noopener noreferrer">🐦 Twitter / X</a>
+                <a th:href="@{/receta/__${receta.id}__/compartir(destino='facebook')}" class="btn-share btn-fb" target="_blank" rel="noopener noreferrer">📘 Facebook</a>
+            </div>
+        </div>
+
+        <!-- SUBIR FOTO O VIDEO (privado) -->
+        <div sec:authorize="isAuthenticated()" class="detalle-medios">
+            <h3>📷 Agregar foto o video</h3>
+
+            <!-- Mensajes flash -->
+            <div th:if="${exito}" class="alerta alerta-ok" th:text="${exito}"></div>
+            <div th:if="${error}"  class="alerta alerta-err" th:text="${error}"></div>
+
+            <form th:action="@{/receta/__${receta.id}__/subir-medio}" method="post"
+                  enctype="multipart/form-data" class="form-medio">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                <label for="archivo">Selecciona imagen (JPG, PNG, GIF, WEBP) o video (MP4, MOV, AVI) — máx 50 MB</label>
+                <input type="file" id="archivo" name="archivo" accept=".jpg,.jpeg,.png,.gif,.webp,.mp4,.mov,.avi" required class="input-file"/>
+                <button type="submit" class="btn-primary">⬆️ Subir</button>
+            </form>
+
+            <!-- Galería de medios ya subidos -->
+            <div th:if="${medios != null and !#lists.isEmpty(medios)}" class="galeria-medios">
+                <h4>Fotos y videos de esta receta</h4>
+                <div class="galeria-grid">
+                    <div th:each="medio : ${medios}" class="galeria-item">
+                        <span th:if="${medio.tipo == 'FOTO'}" class="medio-ico">🖼️</span>
+                        <span th:if="${medio.tipo == 'VIDEO'}" class="medio-ico">🎬</span>
+                        <span class="medio-nombre" th:text="${medio.nombreArchivo}">archivo.jpg</span>
+                        <small th:text="'Subido por ' + ${medio.subidoPor}">usuario</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- COMENTARIOS Y VALORACIONES (privado para escribir, público para leer) -->
+        <div class="detalle-comentarios">
+            <h3>💬 Comentarios y valoraciones</h3>
+
+            <!-- Formulario solo si está autenticado -->
+            <div sec:authorize="isAuthenticated()" class="form-comentario-wrap">
+                <form th:action="@{/receta/__${receta.id}__/comentar}" method="post" class="form-comentario">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                    <div class="campo">
+                        <label for="valoracion">Tu valoración:</label>
+                        <div class="estrellas-selector">
+                            <label th:each="n : ${#numbers.sequence(5,1,-1)}">
+                                <input type="radio" name="valoracion" th:value="${n}" th:required="true"/>
+                                <span>⭐</span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="campo">
+                        <label for="contenido">Tu comentario:</label>
+                        <textarea id="contenido" name="contenido" rows="3"
+                                  maxlength="1000" placeholder="Escribe tu opinión..." required class="textarea-comentario"></textarea>
+                    </div>
+                    <button type="submit" class="btn-primary">✉️ Publicar comentario</button>
+                </form>
+            </div>
+
+            <div sec:authorize="!isAuthenticated()" class="login-hint">
+                <a th:href="@{/login}">Inicia sesión</a> para comentar y valorar esta receta.
+            </div>
+
+            <!-- Lista de comentarios -->
+            <div th:if="${comentarios != null and !#lists.isEmpty(comentarios)}" class="comentarios-lista">
+                <div th:each="c : ${comentarios}" class="comentario-card">
+                    <div class="comentario-header">
+                        <strong th:text="${c.autor}">Usuario</strong>
+                        <span class="comentario-estrellas">
+                            <span th:each="i : ${#numbers.sequence(1, c.valoracion)}">⭐</span>
+                        </span>
+                        <small th:text="${#temporals.format(c.fechaCreacion, 'dd/MM/yyyy HH:mm')}">Fecha</small>
+                    </div>
+                    <p class="comentario-texto" th:utext="${c.contenido}">Comentario</p>
+                </div>
+            </div>
+            <div th:if="${comentarios == null or #lists.isEmpty(comentarios)}" class="sin-comentarios">
+                <p>Aún no hay comentarios. ¡Sé el primero en opinar!</p>
+            </div>
+        </div>
+
         <!-- ACCIONES -->
         <div class="detalle-actions">
             <a th:href="@{/buscar}" class="btn-secondary" style="color:var(--color-text);border-color:var(--color-border);background:var(--color-surface);">← Volver a recetas</a>
