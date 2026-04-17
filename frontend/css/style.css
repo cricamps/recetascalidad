@@ -1,0 +1,50 @@
+/* RecetasChef — Frontend desacoplado */
+:root {
+    --color-primary: #e85d26;
+    --color-bg: #faf9f7;
+    --color-surface: #ffffff;
+    --color-text: #1a1a1a;
+    --color-text-light: #666;
+    --color-border: #e0ddd8;
+    --radius: 10px;
+    --shadow: 0 2px 8px rgba(0,0,0,.08);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Lato', system-ui, sans-serif; background: var(--color-bg); color: var(--color-text); }
+a { color: var(--color-primary); text-decoration: none; }
+
+/* ── Navbar ── */
+.navbar { background: var(--color-surface); border-bottom: 1px solid var(--color-border); padding: 0 2rem; display: flex; align-items: center; justify-content: space-between; height: 56px; }
+.nav-logo { font-size: 1.2rem; font-weight: 700; color: var(--color-primary); }
+.nav-links { display: flex; gap: 1.5rem; align-items: center; list-style: none; }
+.nav-links a { color: var(--color-text); font-size: .95rem; }
+.btn-primary { background: var(--color-primary); color: #fff !important; padding: .45rem 1.2rem; border-radius: var(--radius); border: none; cursor: pointer; font-size: .9rem; }
+.btn-secondary { background: transparent; color: var(--color-text); padding: .45rem 1.2rem; border-radius: var(--radius); border: 1px solid var(--color-border); cursor: pointer; font-size: .9rem; }
+
+/* ── Cards ── */
+.container { max-width: 1100px; margin: 0 auto; padding: 2rem 1rem; }
+.section-title { font-size: 1.4rem; font-weight: 700; margin-bottom: 1.25rem; }
+.recetas-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1.25rem; }
+.receta-card { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius); padding: 1.25rem; box-shadow: var(--shadow); cursor: pointer; transition: box-shadow .2s; }
+.receta-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,.13); }
+.receta-card h3 { font-size: 1rem; margin-bottom: .5rem; }
+.receta-card p  { font-size: .85rem; color: var(--color-text-light); }
+.tag { display: inline-block; font-size: .75rem; padding: 2px 8px; border-radius: 20px; background: #f0ede8; color: #555; margin-right: 4px; margin-top: 6px; }
+
+/* ── Login form ── */
+.form-card { max-width: 400px; margin: 3rem auto; background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius); padding: 2rem; box-shadow: var(--shadow); }
+.form-card h2 { margin-bottom: 1.5rem; font-size: 1.3rem; }
+.form-group { display: flex; flex-direction: column; gap: .35rem; margin-bottom: 1rem; }
+.form-group label { font-size: .9rem; font-weight: 600; }
+.form-group input { padding: .55rem .75rem; border: 1px solid var(--color-border); border-radius: 8px; font-size: .95rem; width: 100%; }
+.form-group input:focus { outline: none; border-color: var(--color-primary); }
+.alert { padding: .75rem 1rem; border-radius: 8px; margin-bottom: 1rem; font-size: .9rem; }
+.alert-error { background: #fde8e8; color: #7a1a1a; border: 1px solid #f5c6c6; }
+.alert-ok    { background: #e8f5e8; color: #1a5c1a; border: 1px solid #c6e8c6; }
+
+/* ── Loading ── */
+.loading { text-align: center; padding: 3rem; color: var(--color-text-light); }
+
+/* ── User badge ── */
+.user-badge { font-size: .85rem; color: var(--color-text-light); }
+.user-badge strong { color: var(--color-primary); }

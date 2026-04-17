@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Buscar Recetas — RecetasChef</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<nav class="navbar">
+    <a href="index.html" class="nav-logo">🍳 RecetasChef</a>
+    <ul class="nav-links">
+        <li><a href="index.html">Inicio</a></li>
+        <li><a href="buscar.html">Buscar</a></li>
+        <li id="navLoginBtn"><a href="login.html"><button class="btn-primary">Iniciar sesión</button></a></li>
+        <li id="navLogoutBtn" style="display:none"><button class="btn-secondary" onclick="handleLogout()">Cerrar sesión</button></li>
+    </ul>
+</nav>
+
+<div class="container">
+    <!-- Formulario de búsqueda — SOLO presentación, sin lógica de negocio -->
+    <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius);padding:1.5rem;margin-bottom:2rem">
+        <h2 class="section-title" style="margin-bottom:1rem">🔍 Buscar recetas</h2>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:.75rem">
+            <input id="fNombre"     type="text"   placeholder="Nombre de receta" style="padding:.5rem .75rem;border:1px solid var(--color-border);border-radius:8px">
+            <input id="fTipoCocina" type="text"   placeholder="Tipo de cocina"   style="padding:.5rem .75rem;border:1px solid var(--color-border);border-radius:8px">
+            <input id="fPaisOrigen" type="text"   placeholder="País de origen"   style="padding:.5rem .75rem;border:1px solid var(--color-border);border-radius:8px">
+            <input id="fDificultad" type="text"   placeholder="Dificultad"       style="padding:.5rem .75rem;border:1px solid var(--color-border);border-radius:8px">
+            <input id="fIngrediente" type="text"  placeholder="Ingrediente"      style="padding:.5rem .75rem;border:1px solid var(--color-border);border-radius:8px">
+        </div>
+        <div style="margin-top:1rem;display:flex;gap:.75rem">
+            <button class="btn-primary" onclick="buscar()">Buscar</button>
+            <button class="btn-secondary" onclick="limpiar()">Limpiar</button>
+        </div>
+    </div>
+
+    <div id="alertBox"></div>
+    <div id="totalResultados" style="font-size:.9rem;color:var(--color-text-light);margin-bottom:1rem"></div>
+    <div id="resultadosGrid" class="recetas-grid">
+        <div class="loading">Ingresa un filtro para buscar...</div>
+    </div>
+</div>
+
+<script type="module">
+    import { buscarRecetas, getRecetas, isLoggedIn, setToken } from './js/api.js';
+
+    const saved = sessionStorage.getItem('jwt_token');
+    if (saved) setToken(saved);
+
+    if (!isLoggedIn()) {
+        document.getElementById('navLoginBtn').style.display = 'block';
+        document.getElementById('navLogoutBtn').style.display = 'none';
+    } else {
+        document.getElementById('navLoginBtn').style.display = 'none';
+        document.getElementById('navLogoutBtn').style.display = 'block';
+    }
+
+    function renderCard(r) {
+        return `
+            <div class="receta-card" onclick="location.href='detalle.html?id=${r.id}'">
+                <h3>${r.nombre}</h3>
+                <p>${r.descripcionCorta || ''}</p>
+                <div style="margin-top:.5rem">
+                    <span class="tag">${r.tipoCocina || ''}</span>
+                    <span class="tag">⏱ ${r.tiempoCoccion} min</span>
+                    <span class="tag">${r.dificultad || ''}</span>
+                </div>
+            </div>`;
+    }
+
+    window.buscar = async function() {
+        const grid = document.getElementById('resultadosGrid');
+        grid.innerHTML = '<div class="loading">Buscando...</div>';
+        try {
+            const params = {
+                nombre:      document.getElementById('fNombre').value.trim() || undefined,
+                tipoCocina:  document.getElementById('fTipoCocina').value.trim() || undefined,
+                paisOrigen:  document.getElementById('fPaisOrigen').value.trim() || undefined,
+                dificultad:  document.getElementById('fDificultad').value.trim() || undefined,
+                ingrediente: document.getElementById('fIngrediente').value.trim() || undefined,
+            };
+            // Llamada al BACKEND via API REST
+            const resultados = await buscarRecetas(params);
+            document.getElementById('totalResultados').textContent =
+                `${resultados.length} resultado${resultados.length !== 1 ? 's' : ''} encontrado${resultados.length !== 1 ? 's' : ''}`;
+            grid.innerHTML = resultados.length
+                ? resultados.map(renderCard).join('')
+                : '<p style="color:var(--color-text-light)">No se encontraron recetas.</p>';
+        } catch (err) {
+            grid.innerHTML = '';
+            document.getElementById('alertBox').innerHTML =
+                `<div class="alert alert-error">${err.message}</div>`;
+        }
+    };
+
+    window.limpiar = function() {
+        ['fNombre','fTipoCocina','fPaisOrigen','fDificultad','fIngrediente']
+            .forEach(id => document.getElementById(id).value = '');
+        document.getElementById('resultadosGrid').innerHTML =
+            '<div class="loading">Ingresa un filtro para buscar...</div>';
+        document.getElementById('totalResultados').textContent = '';
+    };
+
+    window.handleLogout = function() {
+        sessionStorage.removeItem('jwt_token');
+        location.href = 'index.html';
+    };
+</script>
+
+</body>
+</html>

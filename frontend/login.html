@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Iniciar sesión — RecetasChef</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<nav class="navbar">
+    <a href="index.html" class="nav-logo">🍳 RecetasChef</a>
+    <ul class="nav-links">
+        <li><a href="index.html">← Volver</a></li>
+    </ul>
+</nav>
+
+<!--
+  CAPA FRONTEND: formulario de login.
+  Al hacer submit llama a POST /api/auth/login (BACKEND).
+  El backend valida credenciales y retorna un JWT.
+  El frontend guarda el JWT en sessionStorage (memoria de sesión).
+  NUNCA se almacena la contraseña en el frontend.
+-->
+<div class="form-card">
+    <h2>🔐 Iniciar sesión</h2>
+
+    <div id="alertBox"></div>
+
+    <div class="form-group">
+        <label for="username">Usuario</label>
+        <input type="text" id="username" placeholder="Tu nombre de usuario" autocomplete="username">
+    </div>
+    <div class="form-group">
+        <label for="password">Contraseña</label>
+        <input type="password" id="password" placeholder="Tu contraseña" autocomplete="current-password">
+    </div>
+    <button class="btn-primary" style="width:100%;padding:.7rem" onclick="handleLogin()">
+        Iniciar sesión
+    </button>
+
+    <p style="margin-top:1rem;font-size:.85rem;color:var(--color-text-light);text-align:center">
+        Usuarios de prueba: <strong>admin</strong> / <strong>usuario1</strong> / <strong>usuario2</strong>
+    </p>
+</div>
+
+<script type="module">
+    import { login } from './js/api.js';
+
+    window.handleLogin = async function() {
+        const username = document.getElementById('username').value.trim();
+        const password = document.getElementById('password').value;
+        const alertBox = document.getElementById('alertBox');
+
+        if (!username || !password) {
+            alertBox.innerHTML = '<div class="alert alert-error">Ingresa usuario y contraseña.</div>';
+            return;
+        }
+
+        try {
+            const data = await login(username, password);
+            // Guardar token JWT en sessionStorage (válido solo durante la sesión del navegador)
+            sessionStorage.setItem('jwt_token', data.token);
+            alertBox.innerHTML = '<div class="alert alert-ok">¡Sesión iniciada! Redirigiendo...</div>';
+            setTimeout(() => location.href = 'index.html', 800);
+        } catch (err) {
+            alertBox.innerHTML = `<div class="alert alert-error">${err.message}</div>`;
+        }
+    };
+
+    // Login con Enter
+    document.getElementById('password').addEventListener('keydown', e => {
+        if (e.key === 'Enter') window.handleLogin();
+    });
+</script>
+
+</body>
+</html>

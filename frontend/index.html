@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RecetasChef — Frontend desacoplado</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<!-- ══ NAVBAR ══════════════════════════════════════════════════════ -->
+<nav class="navbar">
+    <a href="index.html" class="nav-logo">🍳 RecetasChef</a>
+    <ul class="nav-links" id="navLinks">
+        <li><a href="index.html">Inicio</a></li>
+        <li><a href="buscar.html">Buscar</a></li>
+        <li id="navUser" style="display:none">
+            <span class="user-badge">👤 <strong id="navUsername"></strong></span>
+        </li>
+        <li id="navLoginBtn">
+            <a href="login.html"><button class="btn-primary">Iniciar sesión</button></a>
+        </li>
+        <li id="navLogoutBtn" style="display:none">
+            <button class="btn-secondary" onclick="handleLogout()">Cerrar sesión</button>
+        </li>
+    </ul>
+</nav>
+
+<!-- ══ CONTENIDO ═══════════════════════════════════════════════════ -->
+<div class="container">
+    <div id="alertBox"></div>
+
+    <h2 class="section-title">🔥 Recetas recientes</h2>
+    <div id="recientesGrid" class="recetas-grid">
+        <div class="loading">Cargando recetas...</div>
+    </div>
+
+    <br>
+    <h2 class="section-title">⭐ Recetas populares</h2>
+    <div id="popularesGrid" class="recetas-grid">
+        <div class="loading">Cargando recetas...</div>
+    </div>
+</div>
+
+<!--
+  SEPARACIÓN DE CAPAS:
+  Este HTML no tiene lógica de negocio ni acceso a BD.
+  Toda la data viene del BACKEND via API REST (/api/recetas).
+  El módulo api.js gestiona el token JWT y las peticiones HTTP.
+-->
+<script type="module">
+    import { getRecetasRecientes, getRecetasPopulares, isLoggedIn, getMe, logout } from './js/api.js';
+
+    // ── Restaurar sesión desde sessionStorage ─────────────────────
+    const savedToken = sessionStorage.getItem('jwt_token');
+    if (savedToken) {
+        const { setToken } = await import('./js/api.js');
+        setToken(savedToken);
+    }
+
+    // ── Actualizar navbar según estado de sesión ──────────────────
+    async function updateNavbar() {
+        if (isLoggedIn()) {
+            try {
+                const me = await getMe();
+                document.getElementById('navUser').style.display = 'block';
+                document.getElementById('navUsername').textContent = me.username;
+                document.getElementById('navLoginBtn').style.display = 'none';
+                document.getElementById('navLogoutBtn').style.display = 'block';
+            } catch (_) { /* token expirado */ }
+        }
+    }
+
+    // ── Renderizar tarjetas de receta ─────────────────────────────
+    function renderCard(receta) {
+        return `
+            <div class="receta-card" onclick="location.href='detalle.html?id=${receta.id}'">
+                <h3>${receta.nombre}</h3>
+                <p>${receta.descripcionCorta || ''}</p>
+                <div style="margin-top:.5rem">
+                    <span class="tag">${receta.tipoCocina || ''}</span>
+                    <span class="tag">⏱ ${receta.tiempoCoccion} min</span>
+                    <span class="tag">${receta.dificultad || ''}</span>
+                </div>
+            </div>`;
+    }
+
+    function renderGrid(containerId, recetas) {
+        const el = document.getElementById(containerId);
+        if (!recetas || recetas.length === 0) {
+            el.innerHTML = '<p style="color:var(--color-text-light)">No hay recetas disponibles.</p>';
+            return;
+        }
+        el.innerHTML = recetas.map(renderCard).join('');
+    }
+
+    // ── Cargar datos desde el BACKEND ────────────────────────────
+    async function cargarRecetas() {
+        try {
+            const [recientes, populares] = await Promise.all([
+                getRecetasRecientes(),
+                getRecetasPopulares()
+            ]);
+            renderGrid('recientesGrid', recientes);
+            renderGrid('popularesGrid', populares);
+        } catch (err) {
+            document.getElementById('alertBox').innerHTML =
+                `<div class="alert alert-error">Error al cargar recetas: ${err.message}</div>`;
+            document.getElementById('recientesGrid').innerHTML = '';
+            document.getElementById('popularesGrid').innerHTML = '';
+        }
+    }
+
+    window.handleLogout = function() {
+        logout();
+        sessionStorage.removeItem('jwt_token');
+        location.reload();
+    };
+
+    updateNavbar();
+    cargarRecetas();
+</script>
+
+</body>
+</html>

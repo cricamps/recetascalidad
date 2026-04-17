@@ -8,6 +8,7 @@ import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -17,9 +18,15 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.security.web.csrf.CsrfTokenRepository;
 import org.springframework.security.web.csrf.HttpSessionCsrfTokenRepository;
 import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.List;
 
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity
 public class WebSecurityConfig {
 
     private final UsuarioDetailsService usuarioDetailsService;
@@ -31,22 +38,32 @@ public class WebSecurityConfig {
         this.jwtAuthFilter = jwtAuthFilter;
     }
 
-    // ─────────────────────────────────────────────────────────────────
-    // 1) Cadena API REST  /api/**  →  stateless + JWT
-    //    CSRF deshabilitado: seguro porque no se usan cookies de sesión.
-    //    La autenticación es por header Authorization: Bearer <token>.
-    // ─────────────────────────────────────────────────────────────────
+    // ═══════════════════════════════════════════════════════════════
+    // CADENA 1 — API REST  /api/**
+    // ---------------------------------------------------------------
+    // Capa BACKEND pura: stateless, sin sesión, sin CSRF.
+    // Autenticación exclusivamente por header: Authorization: Bearer <JWT>
+    // Rutas públicas:  POST /api/auth/login
+    // Rutas privadas:  todo lo demás bajo /api/**
+    // ═══════════════════════════════════════════════════════════════
     @Bean
     @Order(1)
     @SuppressWarnings("java:S4502")
     public SecurityFilterChain apiFilterChain(HttpSecurity http) throws Exception {
         http
             .securityMatcher("/api/**")
+            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .csrf(csrf -> csrf.disable())
             .sessionManagement(sm ->
                 sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
+                // ── PÚBLICAS ──────────────────────────────────────
                 .requestMatchers("/api/auth/login").permitAll()
+                // ── PRIVADAS (requieren JWT válido) ───────────────
+                .requestMatchers("/api/me").authenticated()
+                .requestMatchers("/api/recetas/**").authenticated()
+                .requestMatchers("/api/comentarios/**").authenticated()
+                .requestMatchers("/api/medios/**").authenticated()
                 .anyRequest().authenticated()
             )
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
@@ -54,29 +71,37 @@ public class WebSecurityConfig {
         return http.build();
     }
 
-    // ─────────────────────────────────────────────────────────────────
-    // 2) Cadena Web (Thymeleaf)  →  form login con sesión
-    // ─────────────────────────────────────────────────────────────────
+    // ═══════════════════════════════════════════════════════════════
+    // CADENA 2 — WEB  (Thymeleaf / SSR)
+    // ---------------------------------------------------------------
+    // Capa FRONTEND SSR: con sesión HTTP y protección CSRF.
+    // Rutas públicas:  /, /home, /buscar, /receta/{id} (lectura),
+    //                  /login, /registro, /css/**, /img/**, /js/**
+    // Rutas privadas:  publicar, comentar, subir medios, compartir
+    // ═══════════════════════════════════════════════════════════════
     @Bean
     @Order(2)
     public SecurityFilterChain webFilterChain(HttpSecurity http) throws Exception {
         http
-            .authorizeHttpRequests(requests -> requests
-                .requestMatchers("/", "/home", "/buscar").permitAll()
+            .authorizeHttpRequests(auth -> auth
+                // ── RUTAS PÚBLICAS ────────────────────────────────
+                .requestMatchers("/", "/home").permitAll()
+                .requestMatchers("/buscar").permitAll()
+                .requestMatchers("/receta/{id}").permitAll()          // lectura pública
+                .requestMatchers("/login", "/registro").permitAll()
                 .requestMatchers("/css/**", "/img/**", "/js/**").permitAll()
-                .requestMatchers("/login", "/login?error", "/login?logout").permitAll()
-                .requestMatchers("/registro").permitAll()
-                .requestMatchers("/h2-console/**").permitAll()
-                // Rutas privadas: requieren autenticación
+                .requestMatchers("/error").permitAll()
+                // ── RUTAS PRIVADAS ────────────────────────────────
+                .requestMatchers("/admin/**").hasRole("ADMIN")
+                .requestMatchers("/nueva-receta").authenticated()
                 .requestMatchers("/receta/*/comentar").authenticated()
                 .requestMatchers("/receta/*/subir-medio").authenticated()
                 .requestMatchers("/receta/*/compartir").authenticated()
-                .requestMatchers("/nueva-receta").authenticated()
+                // ── CUALQUIER OTRA → privada por defecto ──────────
                 .anyRequest().authenticated()
             )
             .csrf(csrf -> csrf
                 .csrfTokenRepository(csrfTokenRepository())
-                .ignoringRequestMatchers("/h2-console/**")
             )
             .formLogin(form -> form
                 .loginPage("/login")
@@ -91,7 +116,7 @@ public class WebSecurityConfig {
                 .permitAll()
             )
             .headers(headers -> headers
-                .frameOptions(fo -> fo.sameOrigin())
+                .frameOptions(fo -> fo.deny())
                 .contentTypeOptions(cto -> {})
                 .httpStrictTransportSecurity(hsts -> hsts
                     .includeSubDomains(true)
@@ -113,6 +138,24 @@ public class WebSecurityConfig {
             );
 
         return http.build();
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // CORS — permite que el frontend separado (otro origen)
+    // consuma la API REST sin bloqueos del navegador.
+    // En producción reemplazar "*" por el dominio real del frontend.
+    // ═══════════════════════════════════════════════════════════════
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration config = new CorsConfiguration();
+        config.setAllowedOriginPatterns(List.of("*"));
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        config.setAllowedHeaders(List.of("Authorization", "Content-Type", "X-CSRF-TOKEN"));
+        config.setExposedHeaders(List.of("Authorization"));
+        config.setAllowCredentials(false);
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/api/**", config);
+        return source;
     }
 
     @Bean

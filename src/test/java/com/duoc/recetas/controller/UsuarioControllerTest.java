@@ -13,8 +13,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.ui.Model;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -40,9 +39,7 @@ class UsuarioControllerTest {
     void mostrarRegistro_retornaVistaRegistro() {
         String vista = usuarioController.mostrarRegistro(model);
         assertThat(vista).isEqualTo("registro");
-        // eq() de Mockito retorna @Nullable pero addAttribute espera @NonNull.
-        // Usamos un literal String directamente para satisfacer al compilador JDT.
-        verify(model).addAttribute("registroRequest", any(RegistroRequest.class));
+        verify(model).addAttribute(eq("registroRequest"), any(RegistroRequest.class));
     }
 
     @Test
@@ -65,8 +62,7 @@ class UsuarioControllerTest {
         String vista = usuarioController.procesarRegistro(req, model);
 
         assertThat(vista).isEqualTo("registro");
-        // Usamos String literal en lugar de eq(String) para evitar warning @Nullable
-        verify(model).addAttribute("error", anyString());
+        verify(model).addAttribute(eq("error"), anyString());
     }
 
     @Test
@@ -77,7 +73,7 @@ class UsuarioControllerTest {
         String vista = usuarioController.procesarRegistro(req, model);
 
         assertThat(vista).isEqualTo("registro");
-        verify(model).addAttribute("error", anyString());
+        verify(model).addAttribute(eq("error"), anyString());
         verify(usuarioService, never()).registrar(any());
     }
 
@@ -110,7 +106,7 @@ class UsuarioControllerTest {
             "", "Tomates", "Sofreír.", "Tradicional", "Chile", 30, "Fácil", model);
 
         assertThat(vista).isEqualTo("nueva-receta");
-        verify(model).addAttribute("error", anyString());
+        verify(model).addAttribute(eq("error"), anyString());
         verify(recetaService, never()).guardar(any());
     }
 
@@ -121,7 +117,7 @@ class UsuarioControllerTest {
             "Sopa", "", "Sofreír.", "Tradicional", "Chile", 30, "Fácil", model);
 
         assertThat(vista).isEqualTo("nueva-receta");
-        verify(model).addAttribute("error", anyString());
+        verify(model).addAttribute(eq("error"), anyString());
     }
 
     // ── Helper ────────────────────────────────────────────────────────────────

@@ -1,6 +1,7 @@
 package com.duoc.recetas.controller;
 
 import com.duoc.recetas.entity.RecetaEntity;
+import com.duoc.recetas.service.InteraccionService;
 import com.duoc.recetas.service.RecetaService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -14,8 +15,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -24,6 +24,9 @@ class RecetaControllerTest {
 
     @Mock
     private RecetaService recetaService;
+
+    @Mock
+    private InteraccionService interaccionService;
 
     @Mock
     private Model model;
@@ -41,7 +44,7 @@ class RecetaControllerTest {
 
         assertThat(vista).isEqualTo("buscar");
         verify(recetaService).getTodas();
-        verify(model).addAttribute("resultados", recetas);
+        verify(model).addAttribute(eq("resultados"), eq(recetas));
     }
 
     @Test
@@ -74,11 +77,13 @@ class RecetaControllerTest {
         receta.setIngredientes("Harina|Mantequilla|Carne");
         receta.setInstrucciones("Paso 1|Paso 2|Paso 3");
         when(recetaService.getPorId(1L)).thenReturn(Optional.of(receta));
+        when(interaccionService.getComentariosPorReceta(1L)).thenReturn(List.of());
+        when(interaccionService.getMediosPorReceta(1L)).thenReturn(List.of());
 
         String vista = recetaController.detalleReceta(1L, model);
 
         assertThat(vista).isEqualTo("detalle");
-        verify(model).addAttribute("receta", receta);
+        verify(model).addAttribute(eq("receta"), eq(receta));
     }
 
     @Test
