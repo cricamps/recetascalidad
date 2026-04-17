@@ -1,6 +1,5 @@
 package com.duoc.recetas.controller;
 
-import com.duoc.recetas.entity.RecetaEntity;
 import com.duoc.recetas.security.JwtUtil;
 import com.duoc.recetas.service.UsuarioDetailsService;
 import org.junit.jupiter.api.BeforeEach;

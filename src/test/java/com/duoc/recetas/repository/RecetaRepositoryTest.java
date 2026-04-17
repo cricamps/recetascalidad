@@ -14,6 +14,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @DataJpaTest
 @ActiveProfiles("test")
+@SuppressWarnings("null")
 class RecetaRepositoryTest {
 
     @Autowired

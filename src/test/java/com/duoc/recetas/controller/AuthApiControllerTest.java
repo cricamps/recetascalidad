@@ -1,7 +1,6 @@
 package com.duoc.recetas.controller;
 
 import com.duoc.recetas.dto.LoginRequest;
-import com.duoc.recetas.security.JwtUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +16,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
+@SuppressWarnings("null")
 class AuthApiControllerTest {
 
     @Autowired
@@ -24,9 +24,6 @@ class AuthApiControllerTest {
 
     @Autowired
     private ObjectMapper objectMapper;
-
-    @Autowired
-    private JwtUtil jwtUtil;
 
     @Test
     void loginConCredencialesCorrectasRetornaToken() throws Exception {
