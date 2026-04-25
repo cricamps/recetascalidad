@@ -8,14 +8,14 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.5.13</version>
+        <version>3.5.14</version>
         <relativePath/>
     </parent>
 
     <groupId>com.duoc</groupId>
     <artifactId>recetas</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>recetas</name>
+    <n>recetas</n>
     <description>Aplicacion web de recetas de cocina - ISY2202</description>
 
     <properties>
