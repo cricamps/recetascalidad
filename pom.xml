@@ -15,7 +15,7 @@
     <groupId>com.duoc</groupId>
     <artifactId>recetas</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <n>recetas</n>
+    <name>recetas</name>
     <description>Aplicacion web de recetas de cocina - ISY2202</description>
 
     <properties>
