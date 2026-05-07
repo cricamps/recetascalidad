@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Publicar Receta · RecetasChef</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Lato:wght@300;400;700&display=swap"
+          rel="stylesheet" crossorigin="anonymous">
+    <style>
+        .publicar-wrapper{max-width:720px;margin:2rem auto;padding:0 1rem 3rem}
+        .publicar-header{background:linear-gradient(135deg,#c0392b,#e74c3c);border-radius:16px 16px 0 0;padding:2rem;text-align:center;color:#fff}
+        .publicar-header h1{margin:0;font-size:1.8rem}
+        .publicar-header p{margin:.4rem 0 0;opacity:.9}
+        .publicar-card{background:#fff;border-radius:0 0 16px 16px;box-shadow:0 8px 30px rgba(0,0,0,.12);padding:2rem}
+        .form-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+        @media(max-width:600px){.form-row{grid-template-columns:1fr}}
+        .form-group{margin-bottom:1.25rem}
+        .form-group label{display:block;font-size:.85rem;font-weight:700;color:#555;margin-bottom:.35rem}
+        .form-group input,.form-group select,.form-group textarea{width:100%;padding:.7rem 1rem;border:2px solid #e0e0e0;border-radius:8px;font-size:.95rem;font-family:inherit;transition:border-color .2s;box-sizing:border-box}
+        .form-group input:focus,.form-group select:focus,.form-group textarea:focus{outline:none;border-color:#c0392b}
+        .form-group textarea{resize:vertical;min-height:100px}
+        .form-hint{font-size:.78rem;color:#888;margin-top:.3rem}
+        .btn-publicar{width:100%;padding:.9rem;background:linear-gradient(135deg,#c0392b,#e74c3c);color:#fff;border:none;border-radius:8px;font-size:1.05rem;font-weight:700;cursor:pointer;transition:opacity .2s;margin-top:.5rem}
+        .btn-publicar:hover{opacity:.9}
+        .alert-error{background:#fdecea;border:1px solid #f5c6cb;border-radius:8px;padding:.75rem 1rem;color:#c0392b;font-size:.9rem;margin-bottom:1.25rem}
+        .breadcrumb{font-size:.85rem;color:#888;margin-bottom:1rem}
+        .breadcrumb a{color:#c0392b;text-decoration:none}
+        .breadcrumb a:hover{text-decoration:underline}
+    </style>
+</head>
+<body>
+<nav class="navbar">
+    <div class="nav-container">
+        <a th:href="@{/home}" class="nav-logo">🍳 RecetasChef</a>
+        <button class="nav-toggle" id="navToggle" aria-label="Abrir menú"><span></span><span></span><span></span></button>
+        <ul class="nav-links" id="navLinks">
+            <li><a th:href="@{/home}"         class="nav-link">Inicio</a></li>
+            <li><a th:href="@{/buscar}"        class="nav-link">Buscar Recetas</a></li>
+            <li><a th:href="@{/nueva-receta}"  class="nav-link active">Publicar Receta</a></li>
+            <li sec:authorize="isAuthenticated()"><span class="nav-user">👤 <span sec:authentication="name"></span></span></li>
+            <li sec:authorize="isAuthenticated()">
+                <form th:action="@{/logout}" method="post" style="display:inline">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                    <button type="submit" class="btn-nav btn-logout">Cerrar Sesión</button>
+                </form>
+            </li>
+        </ul>
+    </div>
+</nav>
+<div class="publicar-wrapper">
+    <div class="breadcrumb">
+        <a th:href="@{/home}">Inicio</a> › <a th:href="@{/buscar}">Recetas</a> › Publicar nueva receta
+    </div>
+    <div class="publicar-header">
+        <h1>📝 Publicar Nueva Receta</h1>
+        <p>Comparte tu receta con la comunidad RecetasChef</p>
+    </div>
+    <div class="publicar-card">
+        <div th:if="${error}" class="alert-error">⚠️ <span th:text="${error}">Error</span></div>
+        <form th:action="@{/nueva-receta}" method="post">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+            <div class="form-group">
+                <label for="nombre">Nombre de la Receta *</label>
+                <input type="text" id="nombre" name="nombre" placeholder="Ej: Cazuela de Vacuno" required maxlength="100"/>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="tipoCocina">Tipo de Cocina</label>
+                    <select id="tipoCocina" name="tipoCocina">
+                        <option value="Tradicional">Tradicional</option>
+                        <option value="Marina">Marina</option>
+                        <option value="Vegetariana">Vegetariana</option>
+                        <option value="Postre">Postre</option>
+                        <option value="Italiana">Italiana</option>
+                        <option value="Mexicana">Mexicana</option>
+                        <option value="Asiática">Asiática</option>
+                        <option value="Otra">Otra</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="paisOrigen">País de Origen</label>
+                    <input type="text" id="paisOrigen" name="paisOrigen" placeholder="Ej: Chile" maxlength="50" value="Chile"/>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="tiempoCoccion">Tiempo de Cocción (minutos)</label>
+                    <input type="number" id="tiempoCoccion" name="tiempoCoccion" placeholder="Ej: 45" required min="1" max="1440"/>
+                </div>
+                <div class="form-group">
+                    <label for="dificultad">Dificultad</label>
+                    <select id="dificultad" name="dificultad">
+                        <option value="Fácil">Fácil</option>
+                        <option value="Media" selected>Media</option>
+                        <option value="Difícil">Difícil</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="ingredientes">Ingredientes *</label>
+                <textarea id="ingredientes" name="ingredientes"
+                          placeholder="Separa cada ingrediente con el símbolo |&#10;Ej: 2 tazas de arroz|1 litro de caldo|Sal al gusto"
+                          required></textarea>
+                <p class="form-hint">Separa cada ingrediente con el símbolo <strong>|</strong></p>
+            </div>
+            <div class="form-group">
+                <label for="instrucciones">Instrucciones de Preparación *</label>
+                <textarea id="instrucciones" name="instrucciones"
+                          placeholder="Separa cada paso con el símbolo |&#10;Ej: Hervir el agua.|Agregar el arroz.|Cocinar 20 minutos."
+                          required></textarea>
+                <p class="form-hint">Separa cada paso con el símbolo <strong>|</strong></p>
+            </div>
+            <button type="submit" class="btn-publicar">🚀 Publicar Receta</button>
+        </form>
+    </div>
+</div>
+<footer class="footer">
+    <div class="footer-bottom"><p>&copy; 2024 RecetasChef · Proyecto ISY2202 - Duoc UC</p></div>
+</footer>
+<script>
+    const toggle = document.getElementById('navToggle');
+    const links  = document.getElementById('navLinks');
+    if (toggle) { toggle.addEventListener('click', () => { toggle.classList.toggle('open'); links.classList.toggle('open'); }); }
+</script>
+</body>
+</html>

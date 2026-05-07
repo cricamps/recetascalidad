@@ -1,41 +1,26 @@
-## Maven
-target/
-pom.xml.tag
-pom.xml.releaseBackup
-pom.xml.versionsBackup
-pom.xml.next
-release.properties
-dependency-reduced-pom.xml
-buildNumber.properties
-.mvn/timing.properties
-.mvn/wrapper/maven-wrapper.jar
+# ── BACKEND (Maven / Spring Boot) ────────────────────────────────────────────
+backend/target/
+backend/.mvn/wrapper/maven-wrapper.jar
+backend/*.class
+backend/*.jar
+backend/*.war
+backend/data/
+backend/.sonar/
 
-## IDE - IntelliJ
-.idea/
-*.iws
-*.iml
-*.ipr
+# ── FRONTEND (Node.js) ────────────────────────────────────────────────────────
+frontend/node_modules/
+frontend/.env
+frontend/coverage/
+frontend/dist/
 
-## IDE - VSCode
-.vscode/
-.classpath
-.project
-.settings/
-.factorypath
-
-## IDE - Eclipse
-.apt_generated
-.eclipse
-
-## OS
+# ── GENERAL ───────────────────────────────────────────────────────────────────
 .DS_Store
 Thumbs.db
-*.swp
-*.swo
-
-## Logs
 *.log
-logs/
+*.tmp
+.idea/
+*.iml
+.vscode/settings.json
 
-## Spring Boot
-spring-shell.log
+# ── RAÍZ ──────────────────────────────────────────────────────────────────────
+target/

@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Buscar Recetas - RecetasChef</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Lato:wght@300;400;700&display=swap"
+          rel="stylesheet" crossorigin="anonymous">
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar">
+    <div class="nav-container">
+        <a th:href="@{/home}" class="nav-logo">🍳 RecetasChef</a>
+        <button class="nav-toggle" id="navToggle" aria-label="Abrir menú">
+            <span></span><span></span><span></span>
+        </button>
+        <ul class="nav-links" id="navLinks">
+            <li><a th:href="@{/home}"   class="nav-link">Inicio</a></li>
+            <li><a th:href="@{/buscar}" class="nav-link active">Buscar Recetas</a></li>
+            <li sec:authorize="isAuthenticated()">
+                <a th:href="@{/nueva-receta}" class="nav-link">📝 Publicar Receta</a>
+            </li>
+            <li sec:authorize="isAuthenticated()">
+                <span class="nav-user">👤 <span sec:authentication="name"></span></span>
+            </li>
+            <li sec:authorize="isAuthenticated()">
+                <form th:action="@{/logout}" method="post" style="display:inline;width:100%">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                    <button type="submit" class="btn-nav btn-logout">Cerrar Sesión</button>
+                </form>
+            </li>
+            <li sec:authorize="!isAuthenticated()">
+                <a th:href="@{/registro}" class="nav-link">Registrarse</a>
+            </li>
+            <li sec:authorize="!isAuthenticated()">
+                <a th:href="@{/login}" class="btn-nav btn-login">Iniciar Sesión</a>
+            </li>
+        </ul>
+    </div>
+</nav>
+
+<!-- PAGE HEADER -->
+<section class="page-header">
+    <div class="page-header-content">
+        <h1>🔍 Buscar Recetas</h1>
+        <p>Encuentra la receta perfecta para cada momento</p>
+    </div>
+</section>
+
+<!-- FILTROS + RESULTADOS -->
+<section class="buscar-section">
+    <div class="buscar-container">
+
+        <div th:if="${param.publicada}" style="background:#d4edda;border:1px solid #c3e6cb;border-radius:8px;padding:.85rem 1.2rem;color:#155724;margin-bottom:1.5rem;font-weight:600;">
+            ✅ ¡Tu receta fue publicada exitosamente y ya está disponible para todos!
+        </div>
+
+        <div class="filtros-card">
+            <h2 class="filtros-titulo">Filtrar recetas</h2>
+            <form th:action="@{/buscar}" method="get" class="filtros-form">
+                <div class="filtros-grid">
+                    <div class="filtro-group">
+                        <label for="f-nombre">🔤 Nombre</label>
+                        <input type="text" id="f-nombre" name="nombre" th:value="${nombre}"
+                               placeholder="Ej: Cazuela..." class="filtro-input">
+                    </div>
+                    <div class="filtro-group">
+                        <label for="f-tipo">🍜 Tipo de cocina</label>
+                        <select id="f-tipo" name="tipoCocina" class="filtro-select">
+                            <option value="">Todos</option>
+                            <option value="Tradicional" th:selected="${tipoCocina == 'Tradicional'}">Tradicional</option>
+                            <option value="Marina"      th:selected="${tipoCocina == 'Marina'}">Marina</option>
+                            <option value="Vegetariana" th:selected="${tipoCocina == 'Vegetariana'}">Vegetariana</option>
+                            <option value="Postre"      th:selected="${tipoCocina == 'Postre'}">Postre</option>
+                            <option value="Italiana"    th:selected="${tipoCocina == 'Italiana'}">Italiana</option>
+                            <option value="Mexicana"    th:selected="${tipoCocina == 'Mexicana'}">Mexicana</option>
+                            <option value="Asiática"    th:selected="${tipoCocina == 'Asiática'}">Asiática</option>
+                            <option value="Otra"        th:selected="${tipoCocina == 'Otra'}">Otra</option>
+                        </select>
+                    </div>
+                    <div class="filtro-group">
+                        <label for="f-ingrediente">🥕 Ingrediente</label>
+                        <input type="text" id="f-ingrediente" name="ingrediente" th:value="${ingrediente}"
+                               placeholder="Ej: pollo, cebolla..." class="filtro-input">
+                    </div>
+                    <div class="filtro-group">
+                        <label for="f-pais">🌍 País de origen</label>
+                        <select id="f-pais" name="paisOrigen" class="filtro-select">
+                            <option value="">Todos</option>
+                            <option value="Chile"  th:selected="${paisOrigen == 'Chile'}">Chile</option>
+                            <option value="México" th:selected="${paisOrigen == 'México'}">México</option>
+                            <option value="Italia" th:selected="${paisOrigen == 'Italia'}">Italia</option>
+                            <option value="Otro"   th:selected="${paisOrigen == 'Otro'}">Otro</option>
+                        </select>
+                    </div>
+                    <div class="filtro-group">
+                        <label for="f-dificultad">📊 Dificultad</label>
+                        <select id="f-dificultad" name="dificultad" class="filtro-select">
+                            <option value="">Todas</option>
+                            <option value="Fácil"   th:selected="${dificultad == 'Fácil'}">Fácil</option>
+                            <option value="Media"   th:selected="${dificultad == 'Media'}">Media</option>
+                            <option value="Difícil" th:selected="${dificultad == 'Difícil'}">Difícil</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="filtros-actions">
+                    <button type="submit" class="btn-buscar">🔍 Buscar</button>
+                    <a th:href="@{/buscar}" class="btn-limpiar">✕ Limpiar filtros</a>
+                </div>
+            </form>
+        </div>
+
+        <!-- RESULTADOS -->
+        <div class="resultados-section">
+            <div class="resultados-header">
+                <h3 th:if="${totalResultados > 0}"
+                    th:text="${totalResultados + ' receta(s) encontrada(s)'}">Resultados</h3>
+                <h3 th:if="${totalResultados == 0}">Sin resultados</h3>
+                <a sec:authorize="isAuthenticated()"
+                   th:href="@{/nueva-receta}"
+                   class="btn-buscar" style="font-size:.85rem;padding:.5rem 1rem;">
+                    📝 Publicar mi receta
+                </a>
+            </div>
+
+            <div th:if="${totalResultados == 0}" class="no-resultados">
+                <div class="no-resultados-icon">🍽️</div>
+                <p>No encontramos recetas con esos criterios.</p>
+                <a th:href="@{/buscar}" class="btn-primary">Ver todas las recetas</a>
+            </div>
+
+            <div class="resultados-grid">
+                <div th:each="receta : ${resultados}" class="receta-card">
+                    <div class="card-imagen">
+                        <div class="card-emoji"
+                             th:text="${receta.tipoCocina == 'Postre' ? '🍮' :
+                                        receta.tipoCocina == 'Marina' ? '🐟' :
+                                        receta.tipoCocina == 'Vegetariana' ? '🥗' : '🍲'}">🍽️</div>
+                        <span class="card-badge" th:text="${receta.dificultad}">Media</span>
+                        <span th:if="${receta.popular}" class="card-popular">⭐ Popular</span>
+                    </div>
+                    <div class="card-body">
+                        <h3 class="card-titulo" th:text="${receta.nombre}">Nombre</h3>
+                        <p class="card-desc"    th:text="${receta.descripcionCorta}">Descripción</p>
+                        <div class="card-meta">
+                            <span class="meta-item">🌍 <span th:text="${receta.paisOrigen}">País</span></span>
+                            <span class="meta-item">⏱️ <span th:text="${receta.tiempoCoccion + ' min'}">30 min</span></span>
+                            <span class="meta-item">🍜 <span th:text="${receta.tipoCocina}">Tipo</span></span>
+                        </div>
+                        <div class="card-footer">
+                            <span class="card-tipo" th:text="${receta.tipoCocina}">Tipo</span>
+                            <span sec:authorize="isAuthenticated()"  class="btn-ver">Ver Receta Completa</span>
+                            <span sec:authorize="!isAuthenticated()" class="btn-ver btn-ver-login">🔒 Iniciar sesión</span>
+                        </div>
+                    </div>
+                    <a sec:authorize="isAuthenticated()"
+                       th:href="@{/receta/{id}(id=${receta.id})}"
+                       class="card-link-full" aria-label="Ver receta"></a>
+                    <a sec:authorize="!isAuthenticated()"
+                       th:href="@{/login}"
+                       class="card-link-full" aria-label="Iniciar sesión para ver receta"></a>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer">
+    <div class="footer-container">
+        <div class="footer-col">
+            <h3>🍳 RecetasChef</h3>
+            <p>Recetas caseras chilenas hechas con cariño.</p>
+        </div>
+        <div class="footer-col">
+            <h4>Explorar</h4>
+            <ul>
+                <li><a th:href="@{/home}">Inicio</a></li>
+                <li><a th:href="@{/buscar}">Buscar Recetas</a></li>
+                <li><a th:href="@{/registro}">Registrarse</a></li>
+            </ul>
+        </div>
+        <div class="footer-col">
+            <h4>Proyecto ISY2202</h4>
+            <p>Seguridad y Calidad en el Desarrollo de Software · Duoc UC</p>
+        </div>
+    </div>
+    <div class="footer-bottom">
+        <p>&copy; 2024 RecetasChef · Spring Boot + Spring Security + JWT + JPA</p>
+    </div>
+</footer>
+
+<script>
+    const toggle = document.getElementById('navToggle');
+    const links  = document.getElementById('navLinks');
+    toggle.addEventListener('click', () => {
+        toggle.classList.toggle('open');
+        links.classList.toggle('open');
+    });
+    links.querySelectorAll('a, button').forEach(el => {
+        el.addEventListener('click', () => {
+            toggle.classList.remove('open');
+            links.classList.remove('open');
+        });
+    });
+</script>
+</body>
+</html>

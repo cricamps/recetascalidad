@@ -1,0 +1,31 @@
+{
+  "name": "recetaschef-frontend",
+  "version": "1.0.0",
+  "description": "Frontend desacoplado de RecetasChef — SPA en HTML/CSS/Vanilla JS que consume la API REST del backend Spring Boot via JWT",
+  "main": "index.html",
+  "scripts": {
+    "start": "npx serve . --listen 3000 --cors",
+    "dev": "npx live-server --port=3000 --open=index.html",
+    "lint": "npx eslint js/**/*.js",
+    "test": "npx jest --experimental-vm-modules",
+    "test:coverage": "npx jest --experimental-vm-modules --coverage",
+    "build": "echo 'Static site — no build step required. Deploy the dist/ folder as-is.'"
+  },
+  "keywords": ["recetas", "spa", "jwt", "fetch-api", "vanilla-js", "isy2202"],
+  "author": "Cristobal Camps & Cynthia Torres — Duoc UC ISY2202",
+  "license": "MIT",
+  "devDependencies": {
+    "eslint": "^8.57.0",
+    "jest": "^29.7.0",
+    "jest-environment-jsdom": "^29.7.0",
+    "@jest/globals": "^29.7.0"
+  },
+  "jest": {
+    "testEnvironment": "jsdom",
+    "transform": {},
+    "extensionsToTreatAsEsm": [".js"],
+    "moduleNameMapper": {
+      "^(\\.{1,2}/.*)\\.js$": "$1"
+    }
+  }
+}

@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RecetasChef - Cocina Chilena</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Lato:wght@300;400;700&display=swap"
+          rel="stylesheet" crossorigin="anonymous">
+</head>
+<body>
+<nav class="navbar">
+    <div class="nav-container">
+        <a th:href="@{/home}" class="nav-logo">🍳 RecetasChef</a>
+        <button class="nav-toggle" id="navToggle" aria-label="Abrir menú">
+            <span></span><span></span><span></span>
+        </button>
+        <ul class="nav-links" id="navLinks">
+            <li><a th:href="@{/home}"   class="nav-link active">Inicio</a></li>
+            <li><a th:href="@{/buscar}" class="nav-link">Buscar Recetas</a></li>
+            <li sec:authorize="isAuthenticated()">
+                <a th:href="@{/nueva-receta}" class="nav-link">📝 Publicar Receta</a>
+            </li>
+            <li sec:authorize="isAuthenticated()">
+                <span class="nav-user">👤 <span sec:authentication="name"></span></span>
+            </li>
+            <li sec:authorize="hasRole('ADMIN')">
+                <a th:href="@{/admin/usuarios}" class="nav-link" style="color:#e74c3c;font-weight:700;">🔧 Admin</a>
+            </li>
+            <li sec:authorize="isAuthenticated()">
+                <form th:action="@{/logout}" method="post" style="display:inline;width:100%">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                    <button type="submit" class="btn-nav btn-logout">Cerrar Sesión</button>
+                </form>
+            </li>
+            <li sec:authorize="!isAuthenticated()">
+                <a th:href="@{/registro}" class="nav-link">Registrarse</a>
+            </li>
+            <li sec:authorize="!isAuthenticated()">
+                <a th:href="@{/login}" class="btn-nav btn-login">Iniciar Sesión</a>
+            </li>
+        </ul>
+    </div>
+</nav>
+<section class="hero">
+    <div class="hero-content">
+        <h1 class="hero-title">Cocina Chilena Casera</h1>
+        <p class="hero-subtitle">Recetas caseras escritas con cariño: arroz graneado, empanadas, plateada, cazuela y mucho más.</p>
+        <div class="hero-buttons">
+            <a th:href="@{/buscar}" class="btn-primary">🔍 Explorar Recetas</a>
+            <a sec:authorize="!isAuthenticated()" th:href="@{/registro}" class="btn-secondary">Crear Cuenta</a>
+            <a sec:authorize="isAuthenticated()"  th:href="@{/nueva-receta}" class="btn-secondary">📝 Publicar Receta</a>
+        </div>
+    </div>
+    <div class="hero-image"><span class="hero-emoji">🫕</span></div>
+</section>
+<div class="banners-section">
+    <p class="banners-label">Publicidad · Espacios comerciales</p>
+    <div class="banners-track">
+        <div class="banner-card verde"><span class="banner-icon">🛒</span><div class="banner-text"><strong>Supermercado Fresco</strong><span>¡Ingredientes frescos al mejor precio!</span></div></div>
+        <div class="banner-card rojo"><span class="banner-icon">🔪</span><div class="banner-text"><strong>Cuchillos Pro Chef</strong><span>Equipamiento profesional para tu cocina</span></div></div>
+        <div class="banner-card azul"><span class="banner-icon">🧂</span><div class="banner-text"><strong>Especias del Mundo</strong><span>Más de 200 variedades importadas</span></div></div>
+        <div class="banner-card naranja"><span class="banner-icon">🍷</span><div class="banner-text"><strong>Viña Los Andes</strong><span>El mejor vino para tus guisos chilenos</span></div></div>
+        <div class="banner-card morado"><span class="banner-icon">📦</span><div class="banner-text"><strong>ChefBox Semanal</strong><span>Ingredientes exactos, entregados en casa</span></div></div>
+        <div class="banner-card verde"><span class="banner-icon">🫙</span><div class="banner-text"><strong>Conservas del Sur</strong><span>Productos artesanales de la Patagonia</span></div></div>
+    </div>
+</div>
+<section class="section-recetas">
+    <div class="section-header">
+        <h2 class="section-title">🆕 Recetas Recientes</h2>
+        <a th:href="@{/buscar}" class="ver-todas">Ver todas →</a>
+    </div>
+    <div class="recetas-grid">
+        <div th:each="receta : ${recetasRecientes}" class="receta-card">
+            <div class="card-imagen">
+                <div class="card-emoji" th:text="${receta.tipoCocina == 'Postre' ? '🍮' : receta.tipoCocina == 'Marina' ? '🐟' : receta.tipoCocina == 'Vegetariana' ? '🥗' : '🍲'}">🍽️</div>
+                <span class="card-badge" th:text="${receta.dificultad}">Media</span>
+            </div>
+            <div class="card-body">
+                <h3 class="card-titulo" th:text="${receta.nombre}">Nombre</h3>
+                <p class="card-desc"    th:text="${receta.descripcionCorta}">Descripción</p>
+                <div class="card-meta">
+                    <span class="meta-item">⏱️ <span th:text="${receta.tiempoCoccion + ' min'}">30 min</span></span>
+                    <span class="meta-item">🍜 <span th:text="${receta.tipoCocina}">Tipo</span></span>
+                </div>
+                <div class="card-footer">
+                    <span class="card-tipo" th:text="${receta.tipoCocina}">Tipo</span>
+                    <span sec:authorize="isAuthenticated()"  class="btn-ver">Ver Receta</span>
+                    <span sec:authorize="!isAuthenticated()" class="btn-ver btn-ver-login">🔒 Ver Receta</span>
+                </div>
+            </div>
+            <a sec:authorize="isAuthenticated()"  th:href="@{/receta/{id}(id=${receta.id})}" class="card-link-full" aria-label="Ver receta"></a>
+            <a sec:authorize="!isAuthenticated()" th:href="@{/login}"                        class="card-link-full" aria-label="Iniciar sesión para ver receta"></a>
+        </div>
+    </div>
+</section>
+<section class="section-populares">
+    <div class="section-header">
+        <h2 class="section-title">⭐ Recetas Populares</h2>
+        <a th:href="@{/buscar}" class="ver-todas">Ver todas →</a>
+    </div>
+    <div class="populares-grid">
+        <div th:each="receta : ${recetasPopulares}" class="popular-card">
+            <div class="popular-emoji" th:text="${receta.tipoCocina == 'Postre' ? '🍮' : receta.tipoCocina == 'Marina' ? '🐟' : receta.tipoCocina == 'Vegetariana' ? '🥗' : '🍲'}">🍽️</div>
+            <div class="popular-info">
+                <h4 th:text="${receta.nombre}">Nombre</h4>
+                <p  th:text="${receta.tipoCocina + ' · ' + receta.dificultad}">Tipo</p>
+            </div>
+            <div class="popular-actions">
+                <span class="popular-tiempo" th:text="${receta.tiempoCoccion + ' min'}">30 min</span>
+                <span sec:authorize="isAuthenticated()"  class="btn-mini">Ver</span>
+                <span sec:authorize="!isAuthenticated()" class="btn-mini btn-mini-lock">🔒</span>
+            </div>
+            <a sec:authorize="isAuthenticated()"  th:href="@{/receta/{id}(id=${receta.id})}" class="popular-link-full" aria-label="Ver receta"></a>
+            <a sec:authorize="!isAuthenticated()" th:href="@{/login}"                        class="popular-link-full" aria-label="Iniciar sesión para ver receta"></a>
+        </div>
+    </div>
+</section>
+<section sec:authorize="!isAuthenticated()" class="cta-section">
+    <div class="cta-container">
+        <h2>¿Listo para ver las recetas completas?</h2>
+        <p>Crea tu cuenta gratis o inicia sesión para descubrir ingredientes exactos, instrucciones paso a paso y publica tus propias recetas.</p>
+        <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;">
+            <a th:href="@{/registro}" class="btn-cta">Crear Cuenta Gratis</a>
+            <a th:href="@{/login}"    class="btn-cta" style="background:#fff;color:#c0392b;">Iniciar Sesión</a>
+        </div>
+    </div>
+</section>
+<footer class="footer">
+    <div class="footer-container">
+        <div class="footer-col"><h3>🍳 RecetasChef</h3><p>Recetas caseras chilenas hechas con cariño.</p></div>
+        <div class="footer-col"><h4>Explorar</h4><ul><li><a th:href="@{/home}">Inicio</a></li><li><a th:href="@{/buscar}">Buscar Recetas</a></li><li><a th:href="@{/registro}">Registrarse</a></li><li><a th:href="@{/login}">Iniciar Sesión</a></li></ul></div>
+        <div class="footer-col"><h4>Proyecto ISY2202</h4><p>Seguridad y Calidad en el Desarrollo de Software · Duoc UC</p></div>
+    </div>
+    <div class="footer-bottom"><p>&copy; 2024 RecetasChef · Spring Boot + Spring Security + JWT + JPA</p></div>
+</footer>
+<script>
+    const toggle = document.getElementById('navToggle');
+    const links  = document.getElementById('navLinks');
+    toggle.addEventListener('click', () => { toggle.classList.toggle('open'); links.classList.toggle('open'); });
+    links.querySelectorAll('a, button').forEach(el => { el.addEventListener('click', () => { toggle.classList.remove('open'); links.classList.remove('open'); }); });
+</script>
+</body>
+</html>
